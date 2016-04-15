@@ -1,5 +1,5 @@
 
-#include "BCStructure.h"
+#include "../include/BCStructure.h"
 
 injInfoFields::injInfoFields(int Nxsize, int Nysize, int Nzsize) {
   ExITemp = newArr3(double, Nxsize, Nysize, Nzsize);

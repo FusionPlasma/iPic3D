@@ -2,8 +2,8 @@
 # 2 Species
 
 #  %%%%%%%%%%%%%%%%%%% Input/Output flags %%%%%%%%%%%%%%%%%%
-SaveDirName    = data     # Output directory
-RestartDirName = data     # Restart directory (for WriteMethod=default)
+SaveDirName    = ../data     # Output directory
+RestartDirName = ../data     # Restart directory (for WriteMethod=default)
 
 #  %%%%%%%%%%%%%%%%%%% Input/Output flags %%%%%%%%%%%%%%%%%%
 
@@ -28,7 +28,7 @@ delta = 0.5
 
 #  %%%%%%%%%%%%%%%%%%% TIME %%%%%%%%%%%%%%%%%%
 dt = 0.5               # dt = time step  
-ncycles = 150          # cycles
+ncycles = 2000          # cycles
 th = 1.0               # th =   decentering parameter
 c = 1.0                # c = light speed 
 
@@ -51,8 +51,8 @@ nyc =  64              # nyc = number of cells - y direction
 nzc =  1               # nzc = number of cells - z direction        
 
 # %%%%%%%%%%%%%%%%%% MPI TOPOLOGY %%%%%%%%%%%%%%%
-XLEN = 2               # Number of subdomains in the X direction
-YLEN = 2               # Number of subdomains in the X direction
+XLEN = 1               # Number of subdomains in the X direction
+YLEN = 1               # Number of subdomains in the X direction
 ZLEN = 1               # Number of subdomains in the X direction
 
 # %%%%%%%%%%%%%% PARTICLES %%%%%%%%%%%%%%%%%

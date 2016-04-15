@@ -5,7 +5,7 @@ begin                : Fri Jan 2009
 developers           : Stefano Markidis, Giovanni Lapenta
  ***************************************************************************/
 
-#include "BcFields3D.h"
+#include "../include/BcFields3D.h"
 
 /** set the boundary condition on boundaries */
 void BCface(int nx, int ny, int nz, double ***vector, int bcFaceXright, int bcFaceXleft, int bcFaceYright, int bcFaceYleft, int bcFaceZright, int bcFaceZleft, VirtualTopology3D * vct) {

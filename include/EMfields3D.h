@@ -24,6 +24,7 @@
 #include "TimeTasks.h"
 #include "asserts.h"
 #include "BCStructure.h"
+#include "VCtopology3D.h"
 
 using std::cout;
 using std::cerr;
@@ -437,6 +438,18 @@ class EMfields3D                // :public Field
     /*! get the magnetic field energy */
     double getBenergy();
 
+    /*!get grid dimension X*/
+    int getNxn();
+    int getNxc();
+
+    /*!get grid dimension Y*/
+    int getNyn();
+    int getNyc();
+
+    /*!get grid dimension Z*/
+    int getNzn();
+    int getNzc();
+
 
     /*! print electromagnetic fields info */
     void print(void) const;
@@ -445,7 +458,9 @@ class EMfields3D                // :public Field
     void updateInfoFields(Grid *grid,VirtualTopology3D *vct,Collective *col);
 
     /* ********************************* // VARIABLES ********************************* */
-  private:
+    void initShock(VCtopology3D *pD, Grid3DCU *pDCU, Collective *pCollective);
+
+private:
     /*! light speed */
     double c;
     /* 4*PI for normalization */

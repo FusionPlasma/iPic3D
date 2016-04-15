@@ -1,5 +1,5 @@
 
-#include "Grid3DCU.h"
+#include "../include/Grid3DCU.h"
 
 /*! constructor */
 Grid3DCU::Grid3DCU(Collective * col, VirtualTopology3D * vct) {

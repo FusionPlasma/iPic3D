@@ -1,5 +1,6 @@
 
-#include "EMfields3D.h"
+#include "../include/EMfields3D.h"
+#include "../include/VCtopology3D.h"
 
 /*! constructor */
 EMfields3D::EMfields3D(Collective * col, Grid * grid) {
@@ -2156,6 +2157,60 @@ void EMfields3D::initBEAM(VirtualTopology3D * vct, Grid * grid, Collective *col,
 
 }
 
+void EMfields3D::initShock(VCtopology3D *vct, Grid3DCU *grid, Collective *col) {
+  if (restart1 == 0) {
+
+    // initialize
+    if (vct->getCartesian_rank() == 0) {
+      cout << "----------------------------------------" << endl;
+      cout << "Initialize Force Free with Perturbation" << endl;
+      cout << "----------------------------------------" << endl;
+      cout << "B0x                              = " << B0x << endl;
+      cout << "B0y                              = " << B0y << endl;
+      cout << "B0z                              = " << B0z << endl;
+      cout << "Delta (current sheet thickness) = " << delta << endl;
+      for (int i = 0; i < ns; i++) {
+        cout << "rho species " << i << " = " << rhoINIT[i];
+      }
+      cout << "Smoothing Factor = " << Smooth << endl;
+      cout << "-------------------------" << endl;
+    }
+    double E0x = - col->getV0(0)*B0z + col->getW0(0)*B0y;
+    double E0y = - col->getW0(0)*B0x + col->getU0(0)*B0z;
+    double E0z = - col->getU0(0)*B0y + col->getV0(0)*B0x;
+
+    for (int i = 0; i < nxn; i++)
+      for (int j = 0; j < nyn; j++)
+        for (int k = 0; k < nzn; k++) {
+          // initialize the density for species
+          for (int is = 0; is < ns; is++) {
+            rhons[is][i][j][k] = rhoINIT[is] / FourPI;
+          }
+          // electric field
+          Ex[i][j][k] = E0x;
+          Ey[i][j][k] = E0y;
+          Ez[i][j][k] = E0z;
+          // Magnetic field
+          Bxn[i][j][k] = B0x;
+          Byn[i][j][k] = B0y;
+          Bzn[i][j][k] = B0z;
+        }
+    for (int i = 0; i < nxc; i++)
+      for (int j = 0; j < nyc; j++)
+        for (int k = 0; k < nzc; k++) {
+          Bxc[i][j][k] = B0x;
+          Byc[i][j][k] = B0y;
+          Bzc[i][j][k] = B0z;
+        }
+
+    for (int is = 0; is < ns; is++)
+      grid->interpN2C(rhocs, is, rhons);
+  }
+  else {
+    init(vct, grid, col);            // use the fields from restart file
+  }
+}
+
 void EMfields3D::UpdateFext(int cycle){
 
   /* -- NOTE: Hardcoded option -- */
@@ -3759,3 +3814,31 @@ EMfields3D::~EMfields3D() {
   delArr3(vectZ, nxn, nyn);
   delArr3(divC, nxc, nyc);
 }
+
+int EMfields3D::getNxn() {
+  return nxn;
+}
+
+int EMfields3D::getNxc() {
+  return nxc;
+}
+
+int EMfields3D::getNyn() {
+  return nyn;
+}
+
+int EMfields3D::getNyc() {
+  return nyc;
+}
+
+int EMfields3D::getNzn() {
+  return nzn;
+}
+
+int EMfields3D::getNzc() {
+  return nzc;
+}
+
+
+
+

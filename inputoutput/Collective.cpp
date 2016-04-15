@@ -1,5 +1,5 @@
 
-#include "Collective.h"
+#include "../include/Collective.h"
 
 /*! Read the input file from text file and put the data in a collective wrapper: if it's a restart read from input file basic sim data and load particles and EM field from restart file */
 void Collective::ReadInput(string inputfile) {

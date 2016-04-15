@@ -10,21 +10,21 @@ developers: Stefano Markidis, Giovanni Lapenta.
 #include <string>
 #include <fstream>
 #include <math.h>
-#include "VirtualTopology3D.h"
-#include "VCtopology3D.h"
-#include "Collective.h"
-#include "ComParticles3D.h"
-#include "Alloc.h"
-#include "Basic.h"
-#include "BcParticles.h"
-#include "Grid.h"
-#include "Grid3DCU.h"
-#include "Field.h"
-#include "MPIdata.h"
+#include "../include/VirtualTopology3D.h"
+#include "../include/VCtopology3D.h"
+#include "../include/Collective.h"
+#include "../include/ComParticles3D.h"
+#include "../include/Alloc.h"
+#include "../include/Basic.h"
+#include "../include/BcParticles.h"
+#include "../include/Grid.h"
+#include "../include/Grid3DCU.h"
+#include "../include/Field.h"
+#include "../include/MPIdata.h"
 
-#include "Particles3Dcomm.h"
+#include "../include/Particles3Dcomm.h"
 
-#include "hdf5.h"
+#include <hdf5.h>
 #include <vector>
 #include <complex>
 
@@ -69,7 +69,7 @@ Particles3Dcomm::~Particles3Dcomm() {
 /** constructors fo a single species*/
 void Particles3Dcomm::allocate(int species, long long initnpmax, Collective * col, VirtualTopology3D * vct, Grid * grid) {
   // info from collectiveIO
-  ns = species;
+  specieNumber = species;
   npcel = col->getNpcel(species);
   npcelx = col->getNpcelx(species);
   npcely = col->getNpcely(species);
@@ -91,7 +91,7 @@ void Particles3Dcomm::allocate(int species, long long initnpmax, Collective * co
   rhoINIT   = col->getRHOinit(species);
   rhoINJECT = col->getRHOinject(species);
 
-  qom = col->getQOM(species);
+  chargeToMassRatio = col->getQOM(species);
   uth = col->getUth(species);
   vth = col->getVth(species);
   wth = col->getWth(species);
@@ -196,7 +196,7 @@ void Particles3Dcomm::allocate(int species, long long initnpmax, Collective * co
   // if RESTART is true initialize the particle in allocate method
   restart = col->getRestart_status();
   if (restart != 0) {
-    if (vct->getCartesian_rank() == 0 && ns == 0)
+    if (vct->getCartesian_rank() == 0 && specieNumber == 0)
       cout << "LOADING PARTICLES FROM RESTART FILE in " + col->getRestartDirName() + "/restart.hdf" << endl;
     stringstream ss;
     ss << vct->getCartesian_rank();
@@ -217,7 +217,7 @@ void Particles3Dcomm::allocate(int species, long long initnpmax, Collective * co
     }
 
     stringstream species_name;
-    species_name << ns;
+    species_name << specieNumber;
     // the cycle of the last restart is set to 0
     string name_dataset = "/particles/species_" + species_name.str() + "/x/cycle_0";
     dataset_id = H5Dopen2(file_id, name_dataset.c_str(), H5P_DEFAULT); // HDF 1.8.8
@@ -469,68 +469,68 @@ void Particles3Dcomm::interpP2G(Field * EMf, Grid * grid, VirtualTopology3D * vc
       //weight[1][1][0] = q[i] * xi[1] * eta[1] * zeta[0] * invVOL;
       //weight[1][1][1] = q[i] * xi[1] * eta[1] * zeta[1] * invVOL;
       // add charge density
-      EMf->addRho(weight, ix, iy, iz, ns);
+      EMf->addRho(weight, ix, iy, iz, specieNumber);
       // add current density - X
       for (int ii = 0; ii < 2; ii++)
         for (int jj = 0; jj < 2; jj++)
           for (int kk = 0; kk < 2; kk++)
             temp[ii][jj][kk] = u[i] * weight[ii][jj][kk];
-      EMf->addJx(temp, ix, iy, iz, ns);
+      EMf->addJx(temp, ix, iy, iz, specieNumber);
       // add current density - Y
       for (int ii = 0; ii < 2; ii++)
         for (int jj = 0; jj < 2; jj++)
           for (int kk = 0; kk < 2; kk++)
             temp[ii][jj][kk] = v[i] * weight[ii][jj][kk];
-      EMf->addJy(temp, ix, iy, iz, ns);
+      EMf->addJy(temp, ix, iy, iz, specieNumber);
       // add current density - Z
       for (int ii = 0; ii < 2; ii++)
         for (int jj = 0; jj < 2; jj++)
           for (int kk = 0; kk < 2; kk++)
             temp[ii][jj][kk] = w[i] * weight[ii][jj][kk];
-      EMf->addJz(temp, ix, iy, iz, ns);
+      EMf->addJz(temp, ix, iy, iz, specieNumber);
       // Pxx - add pressure tensor
       for (int ii = 0; ii < 2; ii++)
         for (int jj = 0; jj < 2; jj++)
           for (int kk = 0; kk < 2; kk++)
             temp[ii][jj][kk] = u[i] * u[i] * weight[ii][jj][kk];
-      EMf->addPxx(temp, ix, iy, iz, ns);
+      EMf->addPxx(temp, ix, iy, iz, specieNumber);
       // Pxy - add pressure tensor
       for (int ii = 0; ii < 2; ii++)
         for (int jj = 0; jj < 2; jj++)
           for (int kk = 0; kk < 2; kk++)
             temp[ii][jj][kk] = u[i] * v[i] * weight[ii][jj][kk];
-      EMf->addPxy(temp, ix, iy, iz, ns);
+      EMf->addPxy(temp, ix, iy, iz, specieNumber);
       // Pxz - add pressure tensor
       for (int ii = 0; ii < 2; ii++)
         for (int jj = 0; jj < 2; jj++)
           for (int kk = 0; kk < 2; kk++)
             temp[ii][jj][kk] = u[i] * w[i] * weight[ii][jj][kk];
-      EMf->addPxz(temp, ix, iy, iz, ns);
+      EMf->addPxz(temp, ix, iy, iz, specieNumber);
       // Pyy - add pressure tensor
       for (int ii = 0; ii < 2; ii++)
         for (int jj = 0; jj < 2; jj++)
           for (int kk = 0; kk < 2; kk++)
             temp[ii][jj][kk] = v[i] * v[i] * weight[ii][jj][kk];
-      EMf->addPyy(temp, ix, iy, iz, ns);
+      EMf->addPyy(temp, ix, iy, iz, specieNumber);
       // Pyz - add pressure tensor
       for (int ii = 0; ii < 2; ii++)
         for (int jj = 0; jj < 2; jj++)
           for (int kk = 0; kk < 2; kk++)
             temp[ii][jj][kk] = v[i] * w[i] * weight[ii][jj][kk];
-      EMf->addPyz(temp, ix, iy, iz, ns);
+      EMf->addPyz(temp, ix, iy, iz, specieNumber);
       // Pzz - add pressure tensor
       for (int ii = 0; ii < 2; ii++)
         for (int jj = 0; jj < 2; jj++)
           for (int kk = 0; kk < 2; kk++)
             temp[ii][jj][kk] = w[i] * w[i] * weight[ii][jj][kk];
-      EMf->addPzz(temp, ix, iy, iz, ns);
+      EMf->addPzz(temp, ix, iy, iz, specieNumber);
     }
     // change this to allow more parallelization after implementing array class
     //#pragma omp critical
     //EMf->addToSpeciesMoments(speciesMoments,ns);
   }
   // communicate contribution from ghost cells 
-  EMf->communicateGhostP2G(ns, 0, 0, 0, 0, vct);
+  EMf->communicateGhostP2G(specieNumber, 0, 0, 0, 0, vct);
 }
 
 /** communicate buffers */
@@ -1065,7 +1065,7 @@ double Particles3Dcomm::getKe() {
   double localKe = 0.0;
   double totalKe = 0.0;
   for (register long long i = 0; i < nop; i++)
-    localKe += .5 * (q[i] / qom) * (u[i] * u[i] + v[i] * v[i] + w[i] * w[i]);
+    localKe += .5 * (q[i] / chargeToMassRatio) * (u[i] * u[i] + v[i] * v[i] + w[i] * w[i]);
   MPI_Allreduce(&localKe, &totalKe, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
   return (totalKe);
 }
@@ -1074,7 +1074,7 @@ double Particles3Dcomm::getP() {
   double localP = 0.0;
   double totalP = 0.0;
   for (register long long i = 0; i < nop; i++)
-    localP += (q[i] / qom) * sqrt(u[i] * u[i] + v[i] * v[i] + w[i] * w[i]);
+    localP += (q[i] / chargeToMassRatio) * sqrt(u[i] * u[i] + v[i] * v[i] + w[i] * w[i]);
   MPI_Allreduce(&localP, &totalP, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
   return (totalP);
 }
@@ -1121,7 +1121,7 @@ void Particles3Dcomm::Print(VirtualTopology3D * ptVCT) const {
   cout << "Xin = " << xstart << "; Xfin = " << xend << endl;
   cout << "Yin = " << ystart << "; Yfin = " << yend << endl;
   cout << "Zin = " << zstart << "; Zfin = " << zend << endl;
-  cout << "Number of species = " << ns << endl;
+  cout << "Number of species = " << specieNumber << endl;
   for (long long i = 0; i < nop; i++)
     cout << "Particles #" << i << " x=" << x[i] << " y=" << y[i] << " z=" << z[i] << " u=" << u[i] << " v=" << v[i] << " w=" << w[i] << endl;
   cout << endl;
@@ -1129,7 +1129,7 @@ void Particles3Dcomm::Print(VirtualTopology3D * ptVCT) const {
 /** print just the number of particles */
 void Particles3Dcomm::PrintNp(VirtualTopology3D * ptVCT)  const {
   cout << endl;
-  cout << "Number of Particles of species " << ns << ": " << nop << endl;
+  cout << "Number of Particles of species " << specieNumber << ": " << nop << endl;
   cout << "Subgrid (" << ptVCT->getCoordinates(0) << "," << ptVCT->getCoordinates(1) << "," << ptVCT->getCoordinates(2) << ")" << endl;
   cout << endl;
 }

@@ -174,7 +174,7 @@ public:
 
 protected:
   /** number of species */
-  int ns;
+  int specieNumber;
   /** maximum number of particles of this species on this domain. used for memory allocation */
   long long npmax;
   /** number of particles of this species on this domain */
@@ -190,7 +190,7 @@ protected:
   /** number of particles per cell - Z direction */
   int npcelz;
   /** charge to mass ratio */
-  double qom;
+  double chargeToMassRatio;
   /** recon thick */
   double delta;
   /** thermal velocity  - Direction X*/

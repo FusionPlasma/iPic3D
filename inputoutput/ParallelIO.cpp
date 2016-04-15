@@ -1,8 +1,8 @@
 
 #include <fstream>
 
-#include "ParallelIO.h"
-#include "MPIdata.h"
+#include "../include/ParallelIO.h"
+#include "../include/MPIdata.h"
 
 /*! Function used to write the EM fields using the parallel HDF5 library */
 void WriteOutputParallel(Grid3DCU *grid, EMfields3D *EMf, Particles3Dcomm *part, Collective *col, VCtopology3D *vct, int cycle){

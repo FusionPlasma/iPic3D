@@ -1,5 +1,5 @@
 
-#include "ComNodes3D.h"
+#include "../include/ComNodes3D.h"
 
 /** communicate ghost cells (FOR NODES) */
 void communicateNode(int nx, int ny, int nz, double ***vector, VirtualTopology3D * vct) {

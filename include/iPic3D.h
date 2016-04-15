@@ -49,6 +49,8 @@ namespace iPic3D {
     inline int LastCycle();
     inline int get_myrank();
 
+      void WriteSimpleOutput(int i);
+
   private:
     MPIdata       * mpi;
     Collective    *col;
@@ -75,7 +77,7 @@ namespace iPic3D {
     int restart_cycle;
     int restart;
     int first_cycle;
-    int ns;
+    int numberSpecies;
     int nprocs;
     int myrank;
     int mem_avail;

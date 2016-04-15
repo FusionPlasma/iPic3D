@@ -1,5 +1,5 @@
 
-#include "ComParser3D.h"
+#include "../include/ComParser3D.h"
 
 /** swap the buffer */
 void swapBuffer(int buffer_size, double *b_left, double *b_right) {

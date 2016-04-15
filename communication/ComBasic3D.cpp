@@ -1,5 +1,5 @@
 
-#include "ComBasic3D.h"
+#include "../include/ComBasic3D.h"
 
 /** communicate particles along a direction **/
 void communicateParticlesDIR(int buffer_size, int myrank, int right_neighbor, int left_neighbor, int DIR, int XLEN, int YLEN, int ZLEN, double *b_right, double *b_left) {

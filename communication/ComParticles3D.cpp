@@ -1,5 +1,5 @@
 
-#include "ComParticles3D.h"
+#include "../include/ComParticles3D.h"
 
 /** comunicate particles and receive particles to and from 6 processors */
 void communicateParticles(int buffer_size, double *b_Xleft, double *b_Xright, double *b_Yleft, double *b_Yright, double *b_Zleft, double *b_Zright, VirtualTopology3D * vct) {

@@ -1,5 +1,5 @@
 
-#include "iPic3D.h"
+#include "../include/iPic3D.h"
 
 using namespace iPic3D;
 
@@ -17,10 +17,11 @@ int c_Solver::Init(int argc, char **argv) {
   SaveDirName = col->getSaveDirName();
   RestartDirName = col->getRestartDirName();
   restart = col->getRestart_status();
-  ns = col->getNs();            // get the number of particle species involved in simulation
+  numberSpecies = col->getNs();            // get the number of particle species involved in simulation
   first_cycle = col->getLast_cycle() + 1; // get the last cycle from the restart
   // initialize the virtual cartesian topology 
   vct = new VCtopology3D(col);
+  int tempNproc = vct->getNprocs();
   // Check if we can map the processes into a matrix ordering defined in Collective.cpp
   if (nprocs != vct->getNprocs()) {
     if (myrank == 0) {
@@ -57,7 +58,7 @@ int c_Solver::Init(int argc, char **argv) {
     /* -------------------------------------------- */
     /* If using parallel H5hut IO read initial file */
     /* -------------------------------------------- */
-    ReadFieldsH5hut(ns, false, EMf, col, vct, grid);
+    ReadFieldsH5hut(numberSpecies, false, EMf, col, vct, grid);
 
   }
   else {
@@ -69,6 +70,7 @@ int c_Solver::Init(int argc, char **argv) {
     else if (col->getCase()=="GEM")       EMf->initGEM(vct, grid,col);
     else if (col->getCase()=="BATSRUS")   EMf->initBATSRUS(vct,grid,col);
     else if (col->getCase()=="Dipole")    EMf->init(vct,grid,col);
+    else if (col->getCase()=="shock") EMf->initShock(vct,grid,col);
     else {
       if (myrank==0) {
         cout << " =========================================================== " << endl;
@@ -84,12 +86,12 @@ int c_Solver::Init(int argc, char **argv) {
   EMf->updateInfoFields(grid,vct,col);
 
   // Allocation of particles
-  part = new Particles3D[ns];
+  part = new Particles3D[numberSpecies];
   if (col->getSolInit()) {
-    if (col->getPartInit()=="File") ReadPartclH5hut(ns, part, col, vct, grid);
+    if (col->getPartInit()=="File") ReadPartclH5hut(numberSpecies, part, col, vct, grid);
     else {
       if (myrank==0) cout << "WARNING: Particle drift velocity from ExB " << endl;
-      for (int i = 0; i < ns; i++){
+      for (int i = 0; i < numberSpecies; i++){
         part[i].allocate(i, 0, col, vct, grid);
         if (col->getPartInit()=="EixB") part[i].MaxwellianFromFields(grid, EMf, vct);
         else                            part[i].maxwellian(grid, EMf, vct);
@@ -97,14 +99,14 @@ int c_Solver::Init(int argc, char **argv) {
     }
   }
   else {
-    for (int i = 0; i < ns; i++)
+    for (int i = 0; i < numberSpecies; i++)
       part[i].allocate(i, 0, col, vct, grid);
 
     // Initial Condition for PARTICLES if you are not starting from RESTART
     if (restart == 0) {
       // wave = new Planewave(col, EMf, grid, vct);
       // wave->Wave_Rotated(part); // Single Plane Wave
-      for (int i = 0; i < ns; i++)
+      for (int i = 0; i < numberSpecies; i++)
         if      (col->getCase()=="ForceFree") part[i].force_free(grid,EMf,vct);
         else if (col->getCase()=="BATSRUS")   part[i].MaxwellianFromFluid(grid,EMf,vct,col,i);
         else                                  part[i].maxwellian(grid, EMf, vct);
@@ -117,7 +119,7 @@ int c_Solver::Init(int argc, char **argv) {
     // PSK::OutputManager < PSK::OutputAdaptor > output_mgr; // Create an Output Manager
     // myOutputAgent < PSK::HDF5OutputAdaptor > hdf5_agent; // Create an Output Agent for HDF5 output
     hdf5_agent.set_simulation_pointers(EMf, grid, vct, mpi, col);
-    for (int i = 0; i < ns; ++i)
+    for (int i = 0; i < numberSpecies; ++i)
       hdf5_agent.set_simulation_pointers_part(&part[i]);
     output_mgr.push_back(&hdf5_agent);  // Add the HDF5 output agent to the Output Manager's list
     if (myrank == 0 & restart < 2) {
@@ -143,8 +145,8 @@ int c_Solver::Init(int argc, char **argv) {
   }
 
   Eenergy, Benergy, TOTenergy = 0.0, TOTmomentum = 0.0;
-  Ke = new double[ns];
-  momentum = new double[ns];
+  Ke = new double[numberSpecies];
+  momentum = new double[numberSpecies];
   cq = SaveDirName + "/ConservedQuantities.txt";
   if (myrank == 0) {
     ofstream my_file(cq.c_str());
@@ -173,7 +175,7 @@ int c_Solver::Init(int argc, char **argv) {
       }}}
   my_file.close();
 
-  Qremoved = new double[ns];
+  Qremoved = new double[numberSpecies];
 
   my_clock = new Timing(myrank);
 
@@ -188,10 +190,11 @@ void c_Solver::GatherMoments(){
   EMf->updateInfoFields(grid,vct,col);
   EMf->setZeroDensities();                  // set to zero the densities
 
-  for (int i = 0; i < ns; i++)
+  for (int i = 0; i < numberSpecies; i++)
     part[i].interpP2G(EMf, grid, vct);      // interpolate Particles to Grid(Nodes)
 
   EMf->sumOverSpecies(vct);                 // sum all over the species
+    EMf->sumOverSpeciesJ();
   //
   // Fill with constant charge the planet
   if (col->getCase()=="Dipole") {
@@ -254,7 +257,7 @@ bool c_Solver::ParticlesMover() {
   /*  -------------- */
 
   // timeTasks.start(TimeTasks::PARTICLES);
-  for (int i = 0; i < ns; i++)  // move each species
+  for (int i = 0; i < numberSpecies; i++)  // move each species
   {
     // #pragma omp task inout(part[i]) in(grid) target_device(booster)
     mem_avail = part[i].mover_PC_sub(grid, vct, EMf); // use the Predictor Corrector scheme 
@@ -291,7 +294,7 @@ bool c_Solver::ParticlesMover() {
 
 void c_Solver::InjectBoundaryParticles(){
 
-  for (int i=0; i < ns; i++) {
+  for (int i=0; i < numberSpecies; i++) {
     if (col->getRHOinject(i)>0.0){
 
       mem_avail = part[i].particle_repopulator(grid,vct,EMf,i);
@@ -301,7 +304,7 @@ void c_Solver::InjectBoundaryParticles(){
       /* --------------------------------------- */
 
       if (col->getCase()=="Dipole") {
-        for (int i=0; i < ns; i++)
+        for (int i=0; i < numberSpecies; i++)
           Qremoved[i] = part[i].deleteParticlesInsideSphere(col->getL_square(),col->getx_center(),col->gety_center(),col->getz_center());
 
       }
@@ -315,7 +318,7 @@ void c_Solver::WriteRestart(int cycle) {
   if (cycle % restart_cycle == 0 && cycle != first_cycle) {
     if (col->getWriteMethod() != "h5hut") {
       // without ,0 add to restart file
-      writeRESTART(RestartDirName, myrank, cycle, ns, mpi, vct, col, grid, EMf, part, 0);
+      writeRESTART(RestartDirName, myrank, cycle, numberSpecies, mpi, vct, col, grid, EMf, part, 0);
     }
   }
 
@@ -328,7 +331,7 @@ void c_Solver::WriteConserved(int cycle) {
     Benergy = EMf->getBenergy();
     TOTenergy = 0.0;
     TOTmomentum = 0.0;
-    for (int is = 0; is < ns; is++) {
+    for (int is = 0; is < numberSpecies; is++) {
       Ke[is] = part[is].getKe();
       TOTenergy += Ke[is];
       momentum[is] = part[is].getP();
@@ -370,9 +373,9 @@ void c_Solver::WriteOutput(int cycle) {
     /* Parallel HDF5 output using the H5hut library */
     /* -------------------------------------------- */
 
-    if (cycle%(col->getFieldOutputCycle())==0)        WriteFieldsH5hut(ns, grid, EMf,  col, vct, cycle);
+    if (cycle%(col->getFieldOutputCycle())==0)        WriteFieldsH5hut(numberSpecies, grid, EMf,  col, vct, cycle);
     if (cycle%(col->getParticlesOutputCycle())==0 &&
-        cycle!=col->getLast_cycle() && cycle!=0)      WritePartclH5hut(ns, grid, part, col, vct, cycle);
+        cycle!=col->getLast_cycle() && cycle!=0)      WritePartclH5hut(numberSpecies, grid, part, col, vct, cycle);
 
   }
   else
@@ -392,7 +395,7 @@ void c_Solver::WriteOutput(int cycle) {
     }
     // write the virtual satellite traces
 
-    if (ns > 2) {
+    if (numberSpecies > 2) {
       ofstream my_file(cqsat.c_str(), fstream::app);
       for (int isat = 0; isat < nsat; isat++) {
         for (int jsat = 0; jsat < nsat; jsat++) {
@@ -413,10 +416,118 @@ void c_Solver::WriteOutput(int cycle) {
   }
 }
 
+void c_Solver::WriteSimpleOutput(int cycle) {
+    if(cycle == 0){
+        FILE *Xfile = fopen((col->getSaveDirName() + "/Xfile.dat").c_str(), "w");
+        FILE *Yfile = fopen((col->getSaveDirName() + "/Yfile.dat").c_str(), "w");
+        FILE *Zfile = fopen((col->getSaveDirName() + "/Zfile.dat").c_str(), "w");
+        fclose(Xfile);
+        fclose(Yfile);
+        fclose(Zfile);
+        FILE* Efile = fopen((col->getSaveDirName() + "/Efield.dat").c_str(), "w");
+        FILE* Bfile = fopen((col->getSaveDirName() + "/Bfield.dat").c_str(), "w");
+        fclose(Efile);
+        fclose(Bfile);
+        FILE* concentrationsFile = fopen((col->getSaveDirName() + "/concentrations.dat").c_str(), "w");
+        fclose(concentrationsFile);
+        FILE* protonsFile = fopen((col->getSaveDirName() + "/protons.dat").c_str(), "w");
+        FILE* electronsFile = fopen((col->getSaveDirName() + "/electrons.dat").c_str(), "w");
+        FILE* positronsFile = fopen((col->getSaveDirName() + "/positrons.dat").c_str(), "w");
+        FILE* alphasFile = fopen((col->getSaveDirName() + "/alphas.dat").c_str(), "w");
+        fclose(protonsFile);
+        fclose(electronsFile);
+        fclose(positronsFile);
+        fclose(alphasFile);
+        FILE* velocityProtonFile = fopen((col->getSaveDirName() + "/velocity.dat").c_str(), "w");
+        FILE* velocityElectronFile = fopen((col->getSaveDirName() + "/velocity_electron.dat").c_str(), "w");
+        fclose(velocityProtonFile);
+        fclose(velocityElectronFile);
+        FILE* fluxFile = fopen((col->getSaveDirName() + "/flux.dat").c_str(), "w");
+        fclose(fluxFile);
+        FILE* trajectoryProtonFile = fopen((col->getSaveDirName() + "/trajectory_proton.dat").c_str(), "w");
+        FILE* trajectoryElectronFile = fopen((col->getSaveDirName() + "/trajectory_electron.dat").c_str(), "w");
+        fclose(trajectoryProtonFile);
+        fclose(trajectoryElectronFile);
+        FILE* distributionProtonFile = fopen((col->getSaveDirName() + "/distribution_protons.dat").c_str(), "w");
+        FILE* distributionElectronFile = fopen((col->getSaveDirName() + "/distribution_electrons.dat").c_str(), "w");
+        fclose(distributionProtonFile);
+        fclose(distributionElectronFile);
+        FILE* generalFile = fopen((col->getSaveDirName() + "/general.dat").c_str(), "w");
+        fclose(generalFile);
+        FILE* divergenceFile = fopen((col->getSaveDirName() + "/divergence_error.dat").c_str(), "w");
+        fclose(divergenceFile);
+
+    }
+    if(cycle % 10 == 0) {
+        FILE *Xfile = fopen((col->getSaveDirName() + "/Xfile.dat").c_str(), "w");
+        FILE *Yfile = fopen((col->getSaveDirName() + "/Yfile.dat").c_str(), "w");
+        FILE *Zfile = fopen((col->getSaveDirName() + "/Zfile.dat").c_str(), "w");
+        for(int i = 1; i <= grid->getNXN() - 1; ++i){
+            fprintf(Xfile, "%g\n", grid->getXN(i, 0, 0));
+        }
+        for(int i = 1; i <= grid->getNYN() - 1; ++i){
+            fprintf(Yfile, "%g\n", grid->getYN(0, i, 0));
+        }
+        for(int i = 1; i <= grid->getNZN() - 1; ++i){
+            fprintf(Zfile, "%g\n", grid->getZN(0, 0, i));
+        }
+        fclose(Xfile);
+        fclose(Yfile);
+        fclose(Zfile);
+
+        FILE* Efile = fopen((col->getSaveDirName() + "/Efield.dat").c_str(), "a");
+        FILE* Bfile = fopen((col->getSaveDirName() + "/Bfield.dat").c_str(), "a");
+        FILE* fluxFile = fopen((col->getSaveDirName() + "/flux.dat").c_str(), "a");
+
+        for(int i = 1; i <= grid->getNXN() - 1; ++i){
+            for(int j = 1; j <= grid->getNYN() - 1; ++j){
+                for(int k = 1; k <= grid->getNZN() - 1; ++k){
+                    fprintf(Efile, "%g %g %g\n", EMf->getEx(i, j, k), EMf->getEy(i, j, k), EMf->getEz(i, j, k));
+                    fprintf(fluxFile, "%g %g %g\n", EMf->getJx(i, j, k), EMf->getJy(i, j, k), EMf->getJz(i, j, k));
+                }
+            }
+        }
+
+        for(int i = 1; i < grid->getNXN() - 1; ++i){
+            for(int j = 1; j < grid->getNYN() - 1; ++j){
+                for(int k = 1; k < grid->getNZN() - 1; ++k){
+                    fprintf(Bfile, "%g %g %g\n", EMf->getBx(i, j, k), EMf->getBy(i, j, k), EMf->getBz(i, j, k));
+                }
+            }
+        }
+        fclose(Efile);
+        fclose(Bfile);
+        fclose(fluxFile);
+
+        FILE* concentrationsFile = fopen((col->getSaveDirName() + "/concentrations.dat").c_str(), "a");
+        FILE* velocityProtonFile = fopen((col->getSaveDirName() + "/velocity.dat").c_str(), "a");
+        FILE* velocityElectronFile = fopen((col->getSaveDirName() + "/velocity_electron.dat").c_str(), "a");
+        for(int i = 1; i < grid->getNXN() - 1; ++i){
+            for(int j = 1; j < grid->getNYN() - 1; ++j){
+                for(int k = 1; k < grid->getNZN() - 1; ++k){
+                    fprintf(concentrationsFile, "%g ", EMf->getRHOc(i, j, k));
+                    for(int m = 0; m < numberSpecies; ++m){
+                        fprintf(concentrationsFile, "%g ", EMf->getRHOns(i, j, k, m));
+                    }
+                    fprintf(concentrationsFile, "\n");
+                    double electronChargeDensity = EMf->getRHOns(i, j, k, 0);
+                    double protonChargeDensity = EMf->getRHOns(i, j, k, 1);
+                    fprintf(velocityElectronFile, "%g %g %g\n", EMf->getJxs(i, j, k, 0)/electronChargeDensity, EMf->getJys(i, j, k, 0)/electronChargeDensity, EMf->getJzs(i, j, k, 0)/electronChargeDensity);
+                    fprintf(velocityProtonFile, "%g %g %g\n", EMf->getJxs(i, j, k, 1)/protonChargeDensity, EMf->getJys(i, j, k, 1)/protonChargeDensity, EMf->getJzs(i, j, k, 1)/protonChargeDensity);
+                }
+            }
+        }
+
+        fclose(concentrationsFile);
+        fclose(velocityProtonFile);
+        fclose(velocityElectronFile);
+    }
+}
+
 void c_Solver::Finalize() {
   if (mem_avail == 0) {          // write the restart only if the simulation finished succesfully
     if (col->getWriteMethod() != "h5hut") {
-      writeRESTART(RestartDirName, myrank, (col->getNcycles() + first_cycle) - 1, ns, mpi, vct, col, grid, EMf, part, 0);
+      writeRESTART(RestartDirName, myrank, (col->getNcycles() + first_cycle) - 1, numberSpecies, mpi, vct, col, grid, EMf, part, 0);
     }
   }
 
@@ -429,3 +540,5 @@ void c_Solver::Finalize() {
   // close MPI
   mpi->finalize_mpi();
 }
+
+

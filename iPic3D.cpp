@@ -1,6 +1,6 @@
 
 #include <iomanip>
-#include "iPic3D.h"
+#include "include/iPic3D.h"
 
 using namespace iPic3D;
 
@@ -44,6 +44,7 @@ int main(int argc, char **argv) {
     /* --------------- */
 
     KCode.WriteOutput(i);
+    KCode.WriteSimpleOutput(i);
     KCode.WriteConserved(i);
     KCode.WriteRestart(i);
 

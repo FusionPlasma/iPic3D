@@ -1,5 +1,5 @@
 
-#include "debug.h"
+#include "../include/debug.h"
 
 #define implement_dprintvar_fileLine(code,type) \
   void dprintvar_fileLine(const char* func, const char* file, int line, \

@@ -3,7 +3,7 @@ EllipticF.cpp  -  Elliptic Functions Tool
                             -------------------
 developers: Found on the web
 ********************************************************************************************/
-#include "EllipticF.h"
+#include "../include/EllipticF.h"
 
 #define MAX(x,y) (x>y?x:y)
 #define MAX3(x,y,z) MAX(MAX(x,y),z)

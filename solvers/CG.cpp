@@ -1,5 +1,5 @@
 
-#include "CG.h"
+#include "../include/CG.h"
 
 /**
  * 

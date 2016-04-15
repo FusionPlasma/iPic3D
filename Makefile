@@ -8,8 +8,10 @@ IPIC_HOME   = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 #     -DUSEH5HUT Use H5hut (must include also -DPARALLEL_IO)
 #     -DBATSRUS Coupling with BATS-R-US
 CXX         = mpicxx
-HDF5_HOME   = /usr/local/hdf5/1.8.11-par
-H5HUT_HOME  = /usr/local/H5hut/1.99.12
+#HDF5_HOME   = /usr/local/hdf5/1.8.11-par
+HDF5_HOME   = /home/vadim/HDF5
+#H5HUT_HOME  = /usr/local/H5hut/1.99.12
+H5HUT_HOME  = /home/vadim/H5hut
 IPIC_FLAGS  = "-DUSEH5HUT -DPARALLEL_IO"
 ## END OF SECTION
 

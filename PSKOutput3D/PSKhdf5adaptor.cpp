@@ -1,5 +1,5 @@
 
-#include "PSKhdf5adaptor.h"
+#include "../include/PSKhdf5adaptor.h"
 
 using namespace PSK;
 

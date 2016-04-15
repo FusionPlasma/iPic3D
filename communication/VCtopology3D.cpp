@@ -1,5 +1,5 @@
 
-#include "VCtopology3D.h"
+#include "../include/VCtopology3D.h"
 
 /** DEFINE THE Topology HERE, setting XLEN,YLEN,ZLEN */
 VCtopology3D::VCtopology3D(Collective *col) {

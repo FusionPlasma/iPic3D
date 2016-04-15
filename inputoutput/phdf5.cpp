@@ -1,5 +1,5 @@
 
-#include "phdf5.h"
+#include "../include/phdf5.h"
 
 #ifdef PHDF5
 

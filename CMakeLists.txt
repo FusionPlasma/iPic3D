@@ -88,7 +88,7 @@ set(SOURCE_FILES
     solvers/GMRES.cpp
     utility/asserts.cpp
     utility/debug.cpp
-    iPic3D.cpp)
+    iPic3D.cpp utility/mathUtil.cpp include/mathUtil.h)
 
 add_executable(iPic3D ${SOURCE_FILES})
 

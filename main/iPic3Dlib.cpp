@@ -54,6 +54,8 @@ int c_Solver::Init(int argc, char **argv) {
   grid = new Grid3DCU(col, vct);  // Create the local grid
   EMf = new EMfields3D(col, grid);  // Create Electromagnetic Fields Object
 
+    double kw, Vye, Vze, Vyp, Vzp;
+
   if (col->getSolInit()) {
     /* -------------------------------------------- */
     /* If using parallel H5hut IO read initial file */
@@ -71,6 +73,7 @@ int c_Solver::Init(int argc, char **argv) {
     else if (col->getCase()=="BATSRUS")   EMf->initBATSRUS(vct,grid,col);
     else if (col->getCase()=="Dipole")    EMf->init(vct,grid,col);
     else if (col->getCase()=="shock") EMf->initShock(vct,grid,col);
+    else if (col->getCase()=="alfven") EMf->initAlfvenWave(vct,grid,col, 1, 0.01, kw, Vye, Vze, Vyp, Vzp);
     else {
       if (myrank==0) {
         cout << " =========================================================== " << endl;
@@ -93,8 +96,16 @@ int c_Solver::Init(int argc, char **argv) {
       if (myrank==0) cout << "WARNING: Particle drift velocity from ExB " << endl;
       for (int i = 0; i < numberSpecies; i++){
         part[i].allocate(i, 0, col, vct, grid);
-        if (col->getPartInit()=="EixB") part[i].MaxwellianFromFields(grid, EMf, vct);
-        else                            part[i].maxwellian(grid, EMf, vct);
+        if (col->getPartInit()=="EixB") {
+            part[i].MaxwellianFromFields(grid, EMf, vct);
+        } else if (col->getPartInit()=="alfven"){
+            if (i == 0) {
+                part[i].maxwellianAlfven(grid, EMf, vct, kw, Vye, Vze);
+            } else {
+                part[i].maxwellianAlfven(grid, EMf, vct, kw, Vyp, Vzp);
+            }
+        } else
+            part[i].maxwellian(grid, EMf, vct);
       }
     }
   }
@@ -458,7 +469,7 @@ void c_Solver::WriteSimpleOutput(int cycle) {
         fclose(divergenceFile);
 
     }
-    if(cycle % 10 == 0) {
+    if(cycle % 50 == 0) {
         FILE *Xfile = fopen((col->getSaveDirName() + "/Xfile.dat").c_str(), "w");
         FILE *Yfile = fopen((col->getSaveDirName() + "/Yfile.dat").c_str(), "w");
         FILE *Zfile = fopen((col->getSaveDirName() + "/Zfile.dat").c_str(), "w");
@@ -505,7 +516,7 @@ void c_Solver::WriteSimpleOutput(int cycle) {
         for(int i = 1; i < grid->getNXN() - 1; ++i){
             for(int j = 1; j < grid->getNYN() - 1; ++j){
                 for(int k = 1; k < grid->getNZN() - 1; ++k){
-                    fprintf(concentrationsFile, "%g ", EMf->getRHOc(i, j, k));
+                    fprintf(concentrationsFile, "%g ", EMf->getRHOn(i, j, k));
                     for(int m = 0; m < numberSpecies; ++m){
                         fprintf(concentrationsFile, "%g ", EMf->getRHOns(i, j, k, m));
                     }

@@ -21,6 +21,7 @@ developers: Stefano Markidis, Giovanni Lapenta
 #include "../include/TimeTasks.h"
 
 #include "../include/Particles3D.h"
+#include "../include/mathUtil.h"
 
 
 #include <hdf5.h>
@@ -288,6 +289,47 @@ void Particles3D::maxwellian(Grid * grid, Field * EMf, VirtualTopology3D * vct) 
             }
 
 
+}
+
+void Particles3D::maxwellianAlfven(Grid3DCU *grid, EMfields3D *EMf, VCtopology3D *vct, double kw, double Vyamplitude, double Vzamplitude) {
+  /* initialize random generator with different seed on different processor */
+  double pi = 4*atan(1.0);
+  srand(vct->getCartesian_rank() + 2);
+
+  double harvest;
+  double prob, theta, sign;
+  long long counter = 0;
+  for (int i = 1; i < grid->getNXC() - 1; i++)
+    for (int j = 1; j < grid->getNYC() - 1; j++)
+      for (int k = 1; k < grid->getNZC() - 1; k++)
+        for (int ii = 0; ii < npcelx; ii++)
+          for (int jj = 0; jj < npcely; jj++)
+            for (int kk = 0; kk < npcelz; kk++) {
+              x[counter] = (ii + .5) * (dx / npcelx) + grid->getXN(i, j, k);  // x[i] = xstart + (xend-xstart)/2.0 + harvest1*((xend-xstart)/4.0)*cos(harvest2*2.0*M_PI);
+              y[counter] = (jj + .5) * (dy / npcely) + grid->getYN(i, j, k);
+              z[counter] = (kk + .5) * (dz / npcelz) + grid->getZN(i, j, k);
+              // q = charge
+              q[counter] = (chargeToMassRatio / fabs(chargeToMassRatio)) * (fabs(EMf->getRHOcs(i, j, k, specieNumber)) / npcel) * (1.0 / grid->getInvVOL());
+              // u
+              harvest = rand() / (double) RAND_MAX;
+              prob = sqrt(-2.0 * log(1.0 - .999999 * harvest));
+              harvest = rand() / (double) RAND_MAX;
+              theta = 2.0 * M_PI * harvest;
+              u[counter] = uth * prob * cos(theta);
+              // v
+              v[counter] = Vyamplitude * sin(kw * x[counter]) + vth * prob * sin(theta);
+              // w
+              harvest = rand() / (double) RAND_MAX;
+              prob = sqrt(-2.0 * log(1.0 - .999999 * harvest));
+              harvest = rand() / (double) RAND_MAX;
+              theta = 2.0 * M_PI * harvest;
+              w[counter] = Vzamplitude * cos(kw * x[counter]) + wth * prob * cos(theta);
+              if (TrackParticleID)
+                ParticleID[counter] = counter * (unsigned long) pow(10.0, BirthRank[1]) + BirthRank[0];
+
+
+              counter++;
+            }
 }
 
 /** Force Free initialization (JxB=0) for particles */
@@ -1493,4 +1535,6 @@ double Particles3D::deleteParticlesInsideSphere(double R, double x_center, doubl
   nop = nplast +1;
   return(Q_removed);
 }
+
+
 

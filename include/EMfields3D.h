@@ -204,6 +204,9 @@ class EMfields3D                // :public Field
     void SetDipole_2Bext(VirtualTopology3D *vct, Grid *grid, Collective *col);
     void SetDipole_3Bext(VirtualTopology3D *vct, Grid *grid, Collective *col);
 
+    void initShock(VCtopology3D *vct, Grid3DCU *grid, Collective *col);
+    void initAlfvenWave(VCtopology3D *vct, Grid3DCU *grid, Collective *col, int wavesCount, double epsilonAmplitude, double& kw, double& Vye, double& Vze, double& Vyp, double& Vzp);
+
     /*! Calculate Electric field using the implicit Maxwell solver */
     void calculateE(Grid * grid, VirtualTopology3D * vct, Collective *col);
     /*! Image of Poisson Solver (for SOLVER) */
@@ -458,8 +461,6 @@ class EMfields3D                // :public Field
     void updateInfoFields(Grid *grid,VirtualTopology3D *vct,Collective *col);
 
     /* ********************************* // VARIABLES ********************************* */
-    void initShock(VCtopology3D *pD, Grid3DCU *pDCU, Collective *pCollective);
-
 private:
     /*! light speed */
     double c;

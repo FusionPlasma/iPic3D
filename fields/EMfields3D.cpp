@@ -1,6 +1,7 @@
 
 #include "../include/EMfields3D.h"
 #include "../include/VCtopology3D.h"
+#include "../include/mathUtil.h"
 
 /*! constructor */
 EMfields3D::EMfields3D(Collective * col, Grid * grid) {
@@ -363,6 +364,36 @@ void EMfields3D::MaxwellImage(double *im, double *vector, Grid * grid, VirtualTo
   eqValue(0.0, Dy, nxn, nyn, nzn);
   eqValue(0.0, Dz, nxn, nyn, nzn);
   // move from krylov space to physical space
+  for(int i = 0; i < nxn; ++i){
+    for(int j = 0; j < nyn; ++j){
+      vectX[i][j][0] = Ex[i][j][0];
+      vectY[i][j][0] = Ey[i][j][0];
+      vectZ[i][j][0] = Ez[i][j][0];
+      vectX[i][j][nzn-1] = Ex[i][j][nzn-1];
+      vectY[i][j][nzn-1] = Ey[i][j][nzn-1];
+      vectZ[i][j][nzn-1] = Ez[i][j][nzn-1];
+    }
+  }
+  for(int i = 0; i < nxn; ++i){
+    for(int k = 0; k < nzn; ++k){
+      vectX[i][0][k] = Ex[i][0][k];
+      vectY[i][0][k] = Ey[i][0][k];
+      vectZ[i][0][k] = Ez[i][0][k];
+      vectX[i][nyn-1][k] = Ex[i][nyn-1][k];
+      vectY[i][nyn-1][k] = Ey[i][nyn-1][k];
+      vectZ[i][nyn-1][k] = Ez[i][nyn-1][k];
+    }
+  }
+  for(int j = 0; j < nyn; ++j){
+    for(int k = 0; k < nzn; ++k){
+      vectX[0][j][k] = Ex[0][j][k];
+      vectY[0][j][k] = Ey[0][j][k];
+      vectZ[0][j][k] = Ez[0][j][k];
+      vectX[nxn-1][j][k] = Ex[nxn-1][j][k];
+      vectY[nxn-1][j][k] = Ey[nxn-1][j][k];
+      vectZ[nxn-1][j][k] = Ez[nxn-1][j][k];
+    }
+  }
   solver2phys(vectX, vectY, vectZ, vector, nxn, nyn, nzn);
   grid->lapN2N(imageX, vectX, vct);
   grid->lapN2N(imageY, vectY, vct);
@@ -2190,6 +2221,10 @@ void EMfields3D::initShock(VCtopology3D *vct, Grid3DCU *grid, Collective *col) {
           Ex[i][j][k] = E0x;
           Ey[i][j][k] = E0y;
           Ez[i][j][k] = E0z;
+          if(j == 0){
+            Ex[i][j][k] = 0;
+            Ez[i][j][k] = 0;
+          }
           // Magnetic field
           Bxn[i][j][k] = B0x;
           Byn[i][j][k] = B0y;
@@ -2201,6 +2236,152 @@ void EMfields3D::initShock(VCtopology3D *vct, Grid3DCU *grid, Collective *col) {
           Bxc[i][j][k] = B0x;
           Byc[i][j][k] = B0y;
           Bzc[i][j][k] = B0z;
+        }
+
+    for (int is = 0; is < ns; is++)
+      grid->interpN2C(rhocs, is, rhons);
+  }
+  else {
+    init(vct, grid, col);            // use the fields from restart file
+  }
+}
+
+void EMfields3D::initAlfvenWave(VCtopology3D *vct, Grid3DCU *grid, Collective *col, int wavesCount, double epsilonAmplitude, double& kw, double& Vye, double& Vze, double& Vyp, double& Vzp) {
+  if (restart1 == 0) {
+
+    // initialize
+    if (vct->getCartesian_rank() == 0) {
+      cout << "----------------------------------------" << endl;
+      cout << "Initialize Force Free with Perturbation" << endl;
+      cout << "----------------------------------------" << endl;
+      cout << "B0x                              = " << B0x << endl;
+      cout << "B0y                              = " << B0y << endl;
+      cout << "B0z                              = " << B0z << endl;
+      cout << "Delta (current sheet thickness) = " << delta << endl;
+      for (int i = 0; i < ns; i++) {
+        cout << "rho species " << i << " = " << rhoINIT[i];
+      }
+      cout << "Smoothing Factor = " << Smooth << endl;
+      cout << "-------------------------" << endl;
+    }
+    double kw = wavesCount * FourPI / (2*col->getLx());
+    double B0 = sqrt(B0x*B0x + B0y*B0y + B0z * B0z);
+    //todo realy?
+    double concentration = fabs(col->getRHOinit(0));
+    //charge = 1.0
+    double omegaPlasmaProton = sqrt(FourPI * concentration * fabs(col->getQOM(1)) * 1.0);
+    double omegaPlasmaElectron = sqrt(FourPI * concentration * fabs(col->getQOM(0)) * 1.0);
+    double omegaGyroProton = B0 * fabs(col->getQOM(1)) /  col->getC();
+    double omegaGyroElectron = B0 * fabs(col->getQOM(0)) /  col->getC();
+
+    double massProton = 1.0;
+    double massElectron = massProton * fabs(col->getQOM(1)/col->getQOM(0));
+
+    double b = col->getC() * kw * (massProton - massElectron) / massProton;
+    double discriminant = col->getC() * col->getC() * kw * kw * sqr(massProton + massElectron) + 4*FourPI * concentration * 1.0*1.0 * (massProton + massElectron) / sqr(massProton);
+    double a = (kw * kw * col->getC() * col->getC() * massProton * massElectron + FourPI * concentration * 1.0*1.0 * (massProton + massElectron)) / sqr(massProton);
+
+    if (discriminant < 0) {
+      printf("discriminant < 0\n");
+      //FILE* errorLogFile = fopen((outputDir + "errorLog.dat").c_str(), "w");
+     // fprintf(errorLogFile, "discriminant = %15.10g\n", discriminant);
+      //fclose(errorLogFile);
+      exit(0);
+    }
+
+    double pi = FourPI/4;
+
+    double fakeOmega = (kw * 1.0 * B0  / massProton) * (sqrt(discriminant) - b) / (2.0 * a);
+    double c2 = col->getC()*col->getC();
+
+    //a4*x^4 + a3*x^3 + a2*x^2 + a1*x + a0 = 0
+
+    double a4 = sqr(col->getC()*col->getC() * massProton * massElectron);
+    a4 = a4 * sqr(sqr(sqr(fakeOmega)));
+    double a3 = -2 * cube(c2) * sqr(kw * massElectron * massProton)
+                - 8 * pi * concentration * sqr(c2* 1.0) * massElectron * massProton * (massElectron + massProton)
+                - sqr(B0 * c * 1.0) * (sqr(massProton) + sqr(massElectron));
+    a3 = a3 * cube(sqr(fakeOmega));
+    double a2 = sqr(sqr(c2 * kw) * massProton * massElectron)
+                + 8 * pi * cube(c2) * concentration * sqr(kw * 1.0) * massProton * massElectron * (massProton + massElectron)
+                + 16 * sqr(pi * c2 * concentration * sqr(1.0) * (massProton + massElectron))
+                + 2 * sqr(B0 * c2 * kw * 1.0) * (sqr(massProton) + sqr(massElectron))
+                + 8 * pi * concentration * sqr(B0 * c * sqr(1.0)) * (massProton + massElectron)
+                + sqr(sqr(B0 * 1.0));
+    a2 = a2 * sqr(sqr(fakeOmega));
+    double a1 = - sqr(B0 * cube(c) * kw * kw * 1.0) * (sqr(massProton) + sqr(massElectron))
+                - 8 * pi * concentration * sqr(B0 *  c2 * kw * sqr(1.0)) * (massProton + massElectron)
+                - 2 * sqr(c * kw * sqr(B0 * 1.0));
+    a1 = a1 * sqr(fakeOmega);
+    double a0 = sqr(sqr(B0 * c * kw * 1.0));
+
+    a4 = a4 / a0;
+    a3 = a3 / a0;
+    a2 = a2 / a0;
+    a1 = a1 / a0;
+    a0 = 1.0;
+
+    double realOmega2 = solve4orderEquation(a4, a3, a2, a1, a0, 1.0);
+
+    double omega = sqrt(realOmega2) * fakeOmega;
+    if (omega < 0) {
+      omega = - omega;
+    }
+
+    double alfvenVReal = omega / kw;
+
+    //double
+    double Bzamplitude = B0 * epsilonAmplitude;
+
+    double Omegae = omegaGyroElectron;
+    double Omegae2 = Omegae * Omegae;
+    double Omegap = omegaGyroProton;
+    double Omegap2 = Omegap * Omegap;
+    double omegae = omegaPlasmaElectron;
+    double omegae2 = omegae * omegae;
+    double omegap = omegaPlasmaProton;
+    double omegap2 = omegap * omegap;
+
+    double kc = kw * c;
+    double kc2 = kc * kc;
+
+    double denominator = omega * omega - Omegae2 - (omegae2 * omega * omega / (omega * omega - kc2));
+
+    Vzp= -((1.0 / (4 * pi * concentration * 1.0)) * (kc + ((omegae2 + omegap2 - omega * omega) / kc) + (omegae2 * Omegae2 / (kc * denominator))) / ((Omegae * omegae2 * omega / ((kc2 - omega * omega) * denominator)) + (Omegap / omega))) * Bzamplitude;
+    Vze = (((1.0 * omega * Omegae) / (massElectron * kc)) * Bzamplitude + (omegae2 * omega * omega / (kc2 - omega * omega)) * Vzp) / denominator;
+
+    double Byamplitude = (4 * pi * concentration * 1.0 / ((omega * omega / kc) - kc)) * (Vze - Vzp);
+
+    Vyp = -(Omegap / omega) * Vzp - (1.0 / (massProton * kc)) * Bzamplitude;
+    Vye = (Omegae / omega) * Vze + (1.0 / (massElectron * kc)) * Bzamplitude;
+
+    double Eyamplitude = (omega / kc) * Bzamplitude;
+    double Ezamplitude = -(omega / kc) * Byamplitude;
+
+
+    for (int i = 0; i < nxn; i++)
+      for (int j = 0; j < nyn; j++)
+        for (int k = 0; k < nzn; k++) {
+          // initialize the density for species
+          for (int is = 0; is < ns; is++) {
+            rhons[is][i][j][k] = rhoINIT[is] / FourPI;
+          }
+          // electric field
+          Ex[i][j][k] = 0;
+          Ey[i][j][k] = Eyamplitude * cos(kw * grid->getXN(i, j, k));
+          Ez[i][j][k] = Ezamplitude * sin(kw * grid->getXN(i, j, k));
+
+          // Magnetic field
+          Bxn[i][j][k] = B0;
+          Byn[i][j][k] = Byamplitude * sin(kw * grid->getXN(i, j, k));
+          Bzn[i][j][k] = Bzamplitude * cos(kw * grid->getXN(i, j, k));
+        }
+    for (int i = 0; i < nxc; i++)
+      for (int j = 0; j < nyc; j++)
+        for (int k = 0; k < nzc; k++) {
+          Bxn[i][j][k] = B0;
+          Byn[i][j][k] = Byamplitude * sin(kw * grid->getXC(i, j, k));
+          Bzn[i][j][k] = Bzamplitude * cos(kw * grid->getXC(i, j, k));
         }
 
     for (int is = 0; is < ns; is++)
@@ -2972,6 +3153,8 @@ void EMfields3D::updateInfoFields(Grid *grid,VirtualTopology3D *vct,Collective *
 
   /* -- NOTE: Hardcoded option -- */
   bool XRightOutflow = false;
+  //bool XRightOutflow = true;
+  bool YRightOutflow = true;
   /* -- END NOTE --*/
 
   double u_0, v_0, w_0;
@@ -3082,6 +3265,8 @@ void EMfields3D::updateInfoFields(Grid *grid,VirtualTopology3D *vct,Collective *
     for (int i=0; i< nxn;i++)
       for (int j=nyn-3; j<nyn;j++)
         for (int k=0; k<nzn;k++){
+
+
 
           injFieldsTop->ExITemp[i][j][k]=w_0*B0y-v_0*B0z;
           injFieldsTop->EyITemp[i][j][k]=u_0*B0z-w_0*B0x;

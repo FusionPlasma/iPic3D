@@ -117,11 +117,21 @@ int c_Solver::Init(int argc, char **argv) {
     if (restart == 0) {
       // wave = new Planewave(col, EMf, grid, vct);
       // wave->Wave_Rotated(part); // Single Plane Wave
-      for (int i = 0; i < numberSpecies; i++)
-        if      (col->getCase()=="ForceFree") part[i].force_free(grid,EMf,vct);
-        else if (col->getCase()=="BATSRUS")   part[i].MaxwellianFromFluid(grid,EMf,vct,col,i);
-        else                                  part[i].maxwellian(grid, EMf, vct);
-
+      for (int i = 0; i < numberSpecies; i++) {
+          if (col->getCase() == "ForceFree") {
+              part[i].force_free(grid, EMf, vct);
+          } else if (col->getCase() == "BATSRUS") {
+              part[i].MaxwellianFromFluid(grid, EMf, vct, col, i);
+          } else if (col->getPartInit() == "alfven") {
+              if (i == 0) {
+                  part[i].maxwellianAlfven(grid, EMf, vct, kw, Vye, Vze);
+              } else {
+                  part[i].maxwellianAlfven(grid, EMf, vct, kw, Vyp, Vzp);
+              }
+          } else {
+              part[i].maxwellian(grid, EMf, vct);
+          }
+      }
     }
   }
 
@@ -469,7 +479,7 @@ void c_Solver::WriteSimpleOutput(int cycle) {
         fclose(divergenceFile);
 
     }
-    if(cycle % 50 == 0) {
+    if(cycle % 20 == 0) {
         FILE *Xfile = fopen((col->getSaveDirName() + "/Xfile.dat").c_str(), "w");
         FILE *Yfile = fopen((col->getSaveDirName() + "/Yfile.dat").c_str(), "w");
         FILE *Zfile = fopen((col->getSaveDirName() + "/Zfile.dat").c_str(), "w");

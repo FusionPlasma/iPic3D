@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="CPP_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/include/ParallelIO.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/EMfields3D.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/asserts.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/Alloc.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/ComParticles3D.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/EllipticF.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/CG.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/GMRES.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/ComBasic3D.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/Grid.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/Particles.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/PSKException.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/InterfaceFluid.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/MPIdata.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/TransArraySpace3D.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/Particles3Dcomm.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/TimeTasks.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/Basic.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/BcParticles.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/Grid3DCU.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/VirtualTopology3D.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/debug.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/Restart3D.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/Timing.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/ComNodes3D.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/phdf5.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/VCtopology3D.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/ConfigFile.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/BCStructure.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/input_array.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/BcFields3D.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/PSKhdf5adaptor.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/ComParser3D.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/Collective.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/iPic3D.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/Bessel.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/Field.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/mathUtil.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/PSKOutput.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/ComInterpNodes3D.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/Particles3D.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/performances/Timing.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/utility/mathUtil.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/utility/asserts.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/utility/debug.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/communication/ComNodes3D.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/communication/ComParticles3D.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/communication/ComBasic3D.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/communication/ComInterpNodes3D.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/communication/VCtopology3D.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/communication/ComParser3D.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/bc/BcParticles.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/bc/BcFields3D.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ConfigFile/src/ConfigFile.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ConfigFile/src/ConfigFile.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/solvers/GMRES.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/solvers/CG.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/mathlib/EllipticF.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/inputoutput/Restart3D.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/inputoutput/ParallelIO.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/inputoutput/Collective.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/inputoutput/phdf5.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/iPic3D.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/grids/Grid3DCU.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/PSKOutput3D/PSKhdf5adaptor.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/particles/Particles3Dcomm.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/particles/Particles3D.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/fields/EMfields3D.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/fields/BCStructure.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/main/iPic3Dlib.cpp" isTestSource="false" />
+    </content>
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module-library">
+      <library name="Header Search Paths">
+        <CLASSES>
+          <root url="file:///usr/include" />
+          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
+          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed" />
+          <root url="file:///usr/local/include" />
+          <root url="file://$USER_HOME$/mpich2-install/include" />
+          <root url="file://$USER_HOME$/HDF5/include" />
+          <root url="file://$USER_HOME$/H5hut/include" />
+        </CLASSES>
+        <SOURCES>
+          <root url="file:///usr/include" />
+          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
+          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed" />
+          <root url="file:///usr/local/include" />
+          <root url="file://$USER_HOME$/mpich2-install/include" />
+          <root url="file://$USER_HOME$/HDF5/include" />
+          <root url="file://$USER_HOME$/H5hut/include" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+  </component>
+</module>

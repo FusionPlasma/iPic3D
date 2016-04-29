@@ -11,7 +11,7 @@ Case              = alfven                           # Case [ GEM | Dipole | ...
 FieldsInit        = ./data/Initial-Fields_000000.h5 # Initial fields h5 file
 PartInit          = alfven                         # Initial particles [ Maxwell | File ]
 WriteMethod       = default                         # Output method [ default | Parallel ]
-PoissonCorrection = yes                             # Poisson correction [ yes | no ]
+PoissonCorrection = no                             # Poisson correction [ yes | no ]
 SimulationName    = GEM                             # Simulation name for the output
 
 #  %%%%%%%%%%%%%%%%%%% Magnetic Reconnection %%%%%%%%%%%%%%%%%%

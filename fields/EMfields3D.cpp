@@ -180,15 +180,24 @@ void EMfields3D::calculateE(Grid * grid, VirtualTopology3D * vct, Collective *co
   double ***gradPHIY = newArr3(double, nxn, nyn, nzn);
   double ***gradPHIZ = newArr3(double, nxn, nyn, nzn);
 
-  double *xkrylov = new double[3 * (nxn - 2) * (nyn - 2) * (nzn - 2)];  // 3 E components
-  double *bkrylov = new double[3 * (nxn - 2) * (nyn - 2) * (nzn - 2)];  // 3 components
+  //double *xkrylov = new double[3 * (nxn - 2) * (nyn - 2) * (nzn - 2)];  // 3 E components
+  //double *bkrylov = new double[3 * (nxn - 2) * (nyn - 2) * (nzn - 2)];  // 3 components
 
-  double *xkrylovPoisson = new double[(nxc - 2) * (nyc - 2) * (nzc - 2)];
-  double *bkrylovPoisson = new double[(nxc - 2) * (nyc - 2) * (nzc - 2)];
+  //double *xkrylovPoisson = new double[(nxc - 2) * (nyc - 2) * (nzc - 2)];
+  //double *bkrylovPoisson = new double[(nxc - 2) * (nyc - 2) * (nzc - 2)];
+
+  double *xkrylov = new double[3 * (nxn) * (nyn) * (nzn)];  // 3 E components
+  double *bkrylov = new double[3 * (nxn) * (nyn) * (nzn) ];  // 3 components
+
+  double *xkrylovPoisson = new double[(nxc) * (nyc ) * (nzc)];
+  double *bkrylovPoisson = new double[(nxc) * (nyc) * (nzc)];
   // set to zero all the stuff 
-  eqValue(0.0, xkrylov, 3 * (nxn - 2) * (nyn - 2) * (nzn - 2));
-  eqValue(0.0, xkrylovPoisson, (nxc - 2) * (nyc - 2) * (nzc - 2));
-  eqValue(0.0, bkrylov, 3 * (nxn - 2) * (nyn - 2) * (nzn - 2));
+  //eqValue(0.0, xkrylov, 3 * (nxn - 2) * (nyn - 2) * (nzn - 2));
+  //eqValue(0.0, xkrylovPoisson, (nxc - 2) * (nyc - 2) * (nzc - 2));
+ // eqValue(0.0, bkrylov, 3 * (nxn - 2) * (nyn - 2) * (nzn - 2));
+  eqValue(0.0, xkrylov, 3 * (nxn ) * (nyn) * (nzn));
+  eqValue(0.0, xkrylovPoisson, (nxc) * (nyc) * (nzc ));
+  eqValue(0.0, bkrylov, 3 * (nxn) * (nyn) * (nzn));
   eqValue(0.0, divE, nxc, nyc, nzc);
   eqValue(0.0, tempC, nxc, nyc, nzc);
   eqValue(0.0, gradPHIX, nxn, nyn, nzn);
@@ -204,11 +213,14 @@ void EMfields3D::calculateE(Grid * grid, VirtualTopology3D * vct, Collective *co
     // move to krylov space 
     phys2solver(bkrylovPoisson, divE, nxc, nyc, nzc);
     // use conjugate gradient first
-    if (!CG(xkrylovPoisson, (nxc - 2) * (nyc - 2) * (nzc - 2), bkrylovPoisson, 3000, CGtol, &Field::PoissonImage, grid, vct, this)) {
+    //if (!CG(xkrylovPoisson, (nxc - 2) * (nyc - 2) * (nzc - 2), bkrylovPoisson, 3000, CGtol, &Field::PoissonImage, grid, vct, this)) {
+    if (!CG(xkrylovPoisson, (nxc) * (nyc) * (nzc), bkrylovPoisson, 3000, CGtol, &Field::PoissonImage, grid, vct, this)) {
       if (vct->getCartesian_rank() == 0)
         cout << "CG not Converged. Trying with GMRes. Consider to increase the number of the CG iterations" << endl;
-      eqValue(0.0, xkrylovPoisson, (nxc - 2) * (nyc - 2) * (nzc - 2));
-      GMRES(&Field::PoissonImage, xkrylovPoisson, (nxc - 2) * (nyc - 2) * (nzc - 2), bkrylovPoisson, 20, 200, GMREStol, grid, vct, this);
+      //eqValue(0.0, xkrylovPoisson, (nxc - 2) * (nyc - 2) * (nzc - 2));
+      //GMRES(&Field::PoissonImage, xkrylovPoisson, (nxc - 2) * (nyc - 2) * (nzc - 2), bkrylovPoisson, 20, 200, GMREStol, grid, vct, this);
+      eqValue(0.0, xkrylovPoisson, (nxc) * (nyc) * (nzc));
+      GMRES(&Field::PoissonImage, xkrylovPoisson, (nxc) * (nyc) * (nzc), bkrylovPoisson, 20, 200, GMREStol, grid, vct, this);
     }
     solver2phys(PHI, xkrylovPoisson, nxc, nyc, nzc);
     communicateCenterBC(nxc, nyc, nzc, PHI, 2, 2, 2, 2, 2, 2, vct);
@@ -226,7 +238,8 @@ void EMfields3D::calculateE(Grid * grid, VirtualTopology3D * vct, Collective *co
   MaxwellSource(bkrylov, grid, vct, col);
   phys2solver(xkrylov, Ex, Ey, Ez, nxn, nyn, nzn);
   // solver
-  GMRES(&Field::MaxwellImage, xkrylov, 3 * (nxn - 2) * (nyn - 2) * (nzn - 2), bkrylov, 20, 200, GMREStol, grid, vct, this);
+  //GMRES(&Field::MaxwellImage, xkrylov, 3 * (nxn - 2) * (nyn - 2) * (nzn - 2), bkrylov, 20, 200, GMREStol, grid, vct, this);
+  GMRES(&Field::MaxwellImage, xkrylov, 3 * (nxn) * (nyn) * (nzn), bkrylov, 20, 200, GMREStol, grid, vct, this);
   // move from krylov space to physical space
   solver2phys(Exth, Eyth, Ezth, xkrylov, nxn, nyn, nzn);
 
@@ -235,9 +248,9 @@ void EMfields3D::calculateE(Grid * grid, VirtualTopology3D * vct, Collective *co
   addscale(1 / th, -(1.0 - th) / th, Ez, Ezth, nxn, nyn, nzn);
 
   // apply to smooth to electric field 3 times
-  smoothE(Smooth, vct, col);
-  smoothE(Smooth, vct, col);
-  smoothE(Smooth, vct, col);
+  //smoothE(Smooth, vct, col);
+  //smoothE(Smooth, vct, col);
+  //smoothE(Smooth, vct, col);
 
   // communicate so the interpolation can have good values
   communicateNodeBC(nxn, nyn, nzn, Exth, col->bcEx[0],col->bcEx[1],col->bcEx[2],col->bcEx[3],col->bcEx[4],col->bcEx[5], vct);
@@ -364,7 +377,7 @@ void EMfields3D::MaxwellImage(double *im, double *vector, Grid * grid, VirtualTo
   eqValue(0.0, Dy, nxn, nyn, nzn);
   eqValue(0.0, Dz, nxn, nyn, nzn);
   // move from krylov space to physical space
-  for(int i = 0; i < nxn; ++i){
+  /*for(int i = 0; i < nxn; ++i){
     for(int j = 0; j < nyn; ++j){
       vectX[i][j][0] = Ex[i][j][0];
       vectY[i][j][0] = Ey[i][j][0];
@@ -393,7 +406,7 @@ void EMfields3D::MaxwellImage(double *im, double *vector, Grid * grid, VirtualTo
       vectY[nxn-1][j][k] = Ey[nxn-1][j][k];
       vectZ[nxn-1][j][k] = Ez[nxn-1][j][k];
     }
-  }
+  }*/
   solver2phys(vectX, vectY, vectZ, vector, nxn, nyn, nzn);
   grid->lapN2N(imageX, vectX, vct);
   grid->lapN2N(imageY, vectY, vct);
@@ -2264,10 +2277,10 @@ void EMfields3D::initAlfvenWave(VCtopology3D *vct, Grid3DCU *grid, Collective *c
       cout << "Smoothing Factor = " << Smooth << endl;
       cout << "-------------------------" << endl;
     }
-    double kw = wavesCount * FourPI / (2*col->getLx());
+    kw = wavesCount * FourPI / (2*col->getLx());
     double B0 = sqrt(B0x*B0x + B0y*B0y + B0z * B0z);
     //todo realy?
-    double concentration = fabs(col->getRHOinit(0));
+    double concentration = (fabs(col->getRHOinit(0)))/FourPI;
     //charge = 1.0
     double omegaPlasmaProton = sqrt(FourPI * concentration * fabs(col->getQOM(1)) * 1.0);
     double omegaPlasmaElectron = sqrt(FourPI * concentration * fabs(col->getQOM(0)) * 1.0);
@@ -2379,9 +2392,9 @@ void EMfields3D::initAlfvenWave(VCtopology3D *vct, Grid3DCU *grid, Collective *c
     for (int i = 0; i < nxc; i++)
       for (int j = 0; j < nyc; j++)
         for (int k = 0; k < nzc; k++) {
-          Bxn[i][j][k] = B0;
-          Byn[i][j][k] = Byamplitude * sin(kw * grid->getXC(i, j, k));
-          Bzn[i][j][k] = Bzamplitude * cos(kw * grid->getXC(i, j, k));
+          Bxc[i][j][k] = B0;
+          Byc[i][j][k] = Byamplitude * sin(kw * grid->getXC(i, j, k));
+          Bzc[i][j][k] = Bzamplitude * cos(kw * grid->getXC(i, j, k));
         }
 
     for (int is = 0; is < ns; is++)

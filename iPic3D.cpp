@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
   /* ------------ */
   /* 1- Main loop */
   /* ------------ */
-
+  KCode.WriteSimpleOutput(0);
   for (int i = KCode.FirstCycle(); i <= KCode.LastCycle(); i++) {
 
     if (KCode.get_myrank() == 0) cout << " ======= Cycle " << i << " ======= " << endl;
@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
     /* --------------- */
 
     KCode.WriteOutput(i);
-    KCode.WriteSimpleOutput(i);
+    KCode.WriteSimpleOutput(i+1);
     KCode.WriteConserved(i);
     KCode.WriteRestart(i);
 

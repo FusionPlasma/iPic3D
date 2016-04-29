@@ -7,11 +7,11 @@ RestartDirName = ../data     # Restart directory (for WriteMethod=default)
 
 #  %%%%%%%%%%%%%%%%%%% Input/Output flags %%%%%%%%%%%%%%%%%%
 
-Case              = alfven                           # Case [ GEM | Dipole | ... ]
+Case              = shock                            # Case [ GEM | Dipole | ... ]
 FieldsInit        = ./data/Initial-Fields_000000.h5 # Initial fields h5 file
-PartInit          = alfven                         # Initial particles [ Maxwell | File ]
+PartInit          = Maxwell                         # Initial particles [ Maxwell | File ]
 WriteMethod       = default                         # Output method [ default | Parallel ]
-PoissonCorrection = yes                             # Poisson correction [ yes | no ]
+PoissonCorrection = no                             # Poisson correction [ yes | no ]
 SimulationName    = GEM                             # Simulation name for the output
 
 #  %%%%%%%%%%%%%%%%%%% Magnetic Reconnection %%%%%%%%%%%%%%%%%%
@@ -37,8 +37,8 @@ Smooth = 0.5           # Smoothing value (5-points stencil)
 
 
 # %%%%%%%%%%%%%%%%%% BOX SIZE %%%%%%%%%%%%%%%
-Lx =   128            # Lx = simulation box length - x direction   
-Ly =   1            # Ly = simulation box length - y direction
+Lx =   16            # Lx = simulation box length - x direction   
+Ly =   128            # Ly = simulation box length - y direction
 Lz =   1.0             # Lz = simulation box length - z direction   
 
 x_center =   1.        # Lx = simulation box length - x direction in m  
@@ -46,8 +46,8 @@ y_center =   1.        # Ly = simulation box length - y direction in m
 z_center =   1.        # Lz = simulation box length - z direction in m  
 L_square =   .1
 
-nxc =  128             # nxc = number of cells - x direction        
-nyc =  1              # nyc = number of cells - y direction
+nxc =  16              # nxc = number of cells - x direction        
+nyc =  128              # nyc = number of cells - y direction
 nzc =  1               # nzc = number of cells - z direction        
 
 # %%%%%%%%%%%%%%%%%% MPI TOPOLOGY %%%%%%%%%%%%%%%
@@ -66,22 +66,22 @@ rhoINIT         = 1.0  1.0           # Initial density (make sure you are neutra
 rhoINJECT       = 1.0  1.0           # Injection density (make sure you are neutral)
 TrackParticleID = 0    0             # TrackParticleID[species] = 1=true, 0=false 
 
-npcelx          = 10    10             # Particles per cell in X
-npcely          = 4    4             # Particles per cell in Y
+npcelx          = 4    4             # Particles per cell in X
+npcely          = 10    10             # Particles per cell in Y
 npcelz          = 4    4             # Particles per cell in Z
 NpMaxNpRatio    = 3.0                # Maximum number of particles allocated
 
 qom             = -256.0  1.0        # Charge/mass ratio
-uth             = 0.0000000045   0.00000000063     # Thermal velocity in X
-vth             = 0.0000000045   0.00000000063     # Thermal velocity in Y
-wth             = 0.0000000045   0.00000000063     # Thermal velocity in Z
+uth             = 0.045   0.0063     # Thermal velocity in X
+vth             = 0.045   0.0063     # Thermal velocity in Y
+wth             = 0.045   0.0063     # Thermal velocity in Z
 u0              = 0.0     0.0        # Drift velocity in X
-v0              = 0.0     0.0        # Drift velocity in X
-w0              = 0.0 0.0   # Drift velocity in X
+v0              = -0.05     -0.05        # Drift velocity in X
+w0              = 0 0   # Drift velocity in X
 
 # %%%%%%%%%%%% Periodicity in each direction %%%%%%%%%%%%%%%
 PERIODICX       = 1                  # In direction X (1=true, 0=false)
-PERIODICY       = 1                  # In direction Y (1=true, 0=false)
+PERIODICY       = 0                  # In direction Y (1=true, 0=false)
 PERIODICZ       = 1                  # In direction Z (1=true, 0=false)
 
 # %%%%%%%%%%%% boundary conditions %%%%%%%%%%%%%%%
@@ -103,7 +103,7 @@ PERIODICZ       = 1                  # In direction Z (1=true, 0=false)
 #    1 = magnetic mirror
     bcEMfaceXright = 0
     bcEMfaceXleft =  0
-    bcEMfaceYright = 0
+    bcEMfaceYright = 2
     bcEMfaceYleft =  0
     bcEMfaceZright = 0
     bcEMfaceZleft =  0
@@ -114,7 +114,7 @@ PERIODICZ       = 1                  # In direction Z (1=true, 0=false)
 #    2 = riemission
     bcPfaceXright = 1
     bcPfaceXleft =  1
-    bcPfaceYright = 1
+    bcPfaceYright = 2
     bcPfaceYleft =  1
     bcPfaceZright = 1
     bcPfaceZleft =  1
@@ -123,7 +123,7 @@ PERIODICZ       = 1                  # In direction Z (1=true, 0=false)
 verbose                = 1        # Print to video results
 Vinj                   = 0.0      # Velocity of the injection from the wall
 CGtol                  = 1E-3     # CG solver stopping criterium tolerance
-GMREStol               = 1E-3     # GMRES solver stopping criterium tolerance
+GMREStol               = 1E-6     # GMRES solver stopping criterium tolerance
 NiterMover             = 3        # mover predictor corrector iteration
 FieldOutputCycle       = 100      # Output for field
 ParticlesOutputCycle   = 100      # Output for particles if 1 it doesnt save particles data

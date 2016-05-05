@@ -477,9 +477,8 @@ void c_Solver::WriteSimpleOutput(int cycle) {
         fclose(generalFile);
         FILE* divergenceFile = fopen((col->getSaveDirName() + "/divergence_error.dat").c_str(), "w");
         fclose(divergenceFile);
-
     }
-    if(cycle % 20 == 0) {
+    if(cycle % 100 == 0) {
         FILE *Xfile = fopen((col->getSaveDirName() + "/Xfile.dat").c_str(), "w");
         FILE *Yfile = fopen((col->getSaveDirName() + "/Yfile.dat").c_str(), "w");
         FILE *Zfile = fopen((col->getSaveDirName() + "/Zfile.dat").c_str(), "w");
@@ -542,6 +541,20 @@ void c_Solver::WriteSimpleOutput(int cycle) {
         fclose(concentrationsFile);
         fclose(velocityProtonFile);
         fclose(velocityElectronFile);
+
+        FILE* electronsFile = fopen((col->getSaveDirName() + "/electrons.dat").c_str(), "w");
+        FILE* protonsFile = fopen((col->getSaveDirName() + "/protons.dat").c_str(), "w");
+
+        for(int i = 0; i < part[0].getNOP(); ++i){
+            fprintf(electronsFile, "%20.15g %20.15g %20.15g %g %g %g\n", part[0].getX(i), part[0].getY(i), part[0].getZ(i), part[0].getU(i), part[0].getV(i), part[0].getW(i));
+        }
+
+        for(int i = 0; i < part[1].getNOP(); ++i){
+            fprintf(protonsFile, "%20.15g %20.15g %20.15g %g %g %g\n", part[1].getX(i), part[1].getY(i), part[1].getZ(i), part[1].getU(i), part[1].getV(i), part[1].getW(i));
+        }
+
+        fclose(electronsFile);
+        fclose(protonsFile);
     }
 }
 

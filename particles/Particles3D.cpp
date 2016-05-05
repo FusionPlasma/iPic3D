@@ -49,7 +49,9 @@ using std::endl;
 /** constructor */
 Particles3D::Particles3D() {
   // see allocate(int species, Collective* col, VirtualTopology3D* vct, Grid* grid)
-
+  injectionLengthX = 0;
+  injectionLengthY = 0;
+  injectionLengthZ = 0;
 }
 /** deallocate particles */
 Particles3D::~Particles3D() {
@@ -252,7 +254,7 @@ void Particles3D::maxwellian(Grid * grid, Field * EMf, VirtualTopology3D * vct) 
 
   /* initialize random generator with different seed on different processor */
   srand(vct->getCartesian_rank() + 2);
-
+  initialShiftY = -0.001*dy/npcely;
   double harvest;
   double prob, theta, sign;
   long long counter = 0;
@@ -263,7 +265,7 @@ void Particles3D::maxwellian(Grid * grid, Field * EMf, VirtualTopology3D * vct) 
           for (int jj = 0; jj < npcely; jj++)
             for (int kk = 0; kk < npcelz; kk++) {
               x[counter] = (ii + .5) * (dx / npcelx) + grid->getXN(i, j, k);  // x[i] = xstart + (xend-xstart)/2.0 + harvest1*((xend-xstart)/4.0)*cos(harvest2*2.0*M_PI);
-              y[counter] = (jj + .5) * (dy / npcely) + grid->getYN(i, j, k);
+              y[counter] = (jj + .5) * (dy / npcely) + initialShiftY + grid->getYN(i, j, k);
               z[counter] = (kk + .5) * (dz / npcelz) + grid->getZN(i, j, k);
               // q = charge
               q[counter] = (chargeToMassRatio / fabs(chargeToMassRatio)) * (fabs(EMf->getRHOcs(i, j, k, specieNumber)) / npcel) * (1.0 / grid->getInvVOL());
@@ -890,12 +892,15 @@ int Particles3D::particle_repopulator(Grid* grid,VirtualTopology3D* vct, Field* 
           for (int ii=0; ii < npcelx; ii++)
             for (int jj=0; jj < npcely; jj++)
               for (int kk=0; kk < npcelz; kk++){
-                harvest =   rand()/(double)RAND_MAX ;
+                /*harvest =   rand()/(double)RAND_MAX ;
                 x[particles_index] = (ii + harvest)*(dx/npcelx) + grid->getXN(i,j,k);
                 harvest =   rand()/(double)RAND_MAX ;
                 y[particles_index] = (jj + harvest)*(dy/npcely) + grid->getYN(i,j,k);
                 harvest =   rand()/(double)RAND_MAX ;
-                z[particles_index] = (kk + harvest)*(dz/npcelz) + grid->getZN(i,j,k);
+                z[particles_index] = (kk + harvest)*(dz/npcelz) + grid->getZN(i,j,k);*/
+                x[particles_index] = (ii + .5) * (dx / npcelx) + grid->getXN(i, j, k);  // x[i] = xstart + (xend-xstart)/2.0 + harvest1*((xend-xstart)/4.0)*cos(harvest2*2.0*M_PI);
+                y[particles_index] = (jj + .5) * (dy / npcely) + grid->getYN(i, j, k);
+                z[particles_index] = (kk + .5) * (dz / npcelz) + grid->getZN(i, j, k);
                 // q = charge
                 /* ATTENTION: OVther methods can be use, i.e. using the values close to the boundary: */
                    double rho = 1.0/FourPI;
@@ -1076,12 +1081,15 @@ int Particles3D::particle_repopulator(Grid* grid,VirtualTopology3D* vct, Field* 
           for (int ii=0; ii < npcelx; ii++)
             for (int jj=0; jj < npcely; jj++)
               for (int kk=0; kk < npcelz; kk++){
-                harvest =   rand()/(double)RAND_MAX ;
+                /*harvest =   rand()/(double)RAND_MAX ;
                 x[particles_index] = (ii + harvest)*(dx/npcelx) + grid->getXN(i,j,k);
                 harvest =   rand()/(double)RAND_MAX ;
                 y[particles_index] = (jj + harvest)*(dy/npcely) + grid->getYN(i,j,k);
                 harvest =   rand()/(double)RAND_MAX ;
-                z[particles_index] = (kk + harvest)*(dz/npcelz) + grid->getZN(i,j,k);
+                z[particles_index] = (kk + harvest)*(dz/npcelz) + grid->getZN(i,j,k);*/
+                x[particles_index] = (ii + .5) * (dx / npcelx) + grid->getXN(i, j, k);  // x[i] = xstart + (xend-xstart)/2.0 + harvest1*((xend-xstart)/4.0)*cos(harvest2*2.0*M_PI);
+                y[particles_index] = (jj + .5) * (dy / npcely) + grid->getYN(i, j, k);
+                z[particles_index] = (kk + .5) * (dz / npcelz) + grid->getZN(i, j, k);
                 // q = charge
                 /* ATTENTION: OVther methods can be use, i.e. using the values close to the boundary: */
                    double rho = 1.0/FourPI;
@@ -1137,12 +1145,15 @@ int Particles3D::particle_repopulator(Grid* grid,VirtualTopology3D* vct, Field* 
           for (int ii=0; ii < npcelx; ii++)
             for (int jj=0; jj < npcely; jj++)
               for (int kk=0; kk < npcelz; kk++){
-                harvest =   rand()/(double)RAND_MAX ;
+                /*harvest =   rand()/(double)RAND_MAX ;
                 x[particles_index] = (ii + harvest)*(dx/npcelx) + grid->getXN(i,j,k);
                 harvest =   rand()/(double)RAND_MAX ;
                 y[particles_index] = (jj + harvest)*(dy/npcely) + grid->getYN(i,j,k);
                 harvest =   rand()/(double)RAND_MAX ;
-                z[particles_index] = (kk + harvest)*(dz/npcelz) + grid->getZN(i,j,k);
+                z[particles_index] = (kk + harvest)*(dz/npcelz) + grid->getZN(i,j,k);*/
+                x[particles_index] = (ii + .5) * (dx / npcelx) + grid->getXN(i, j, k);  // x[i] = xstart + (xend-xstart)/2.0 + harvest1*((xend-xstart)/4.0)*cos(harvest2*2.0*M_PI);
+                y[particles_index] = (jj + .5) * (dy / npcely) - injectionLengthY + initialShiftY + grid->getYN(i, j, k);
+                z[particles_index] = (kk + .5) * (dz / npcelz) + grid->getZN(i, j, k);
                 // q = charge
                 /* ATTENTION: OVther methods can be use, i.e. using the values close to the boundary: */
                    double rho = 1.0/FourPI;
@@ -1170,6 +1181,11 @@ int Particles3D::particle_repopulator(Grid* grid,VirtualTopology3D* vct, Field* 
                 particles_index++ ;
               }
     nop = particles_index;
+  }
+  injectionLengthY += fabs(v0 * EMf->getDt());
+  double particleDeltaY = dy/npcely;
+  while(injectionLengthY > particleDeltaY*0.5){
+    injectionLengthY -= particleDeltaY;
   }
 
   ////////////////////////

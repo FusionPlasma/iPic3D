@@ -20,6 +20,12 @@ developers: Stefano Markidis, Enrico Camporeale, Giovanni Lapenta, David Burgess
  *
  */
 class Particles3D:public Particles3Dcomm {
+  private:
+    double injectionLengthX;
+    double injectionLengthY;
+    double injectionLengthZ;
+
+    double initialShiftY;
   public:
     /** constructor */
     Particles3D();

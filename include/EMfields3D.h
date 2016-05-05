@@ -440,6 +440,8 @@ class EMfields3D                // :public Field
     double getEenergy();
     /*! get the magnetic field energy */
     double getBenergy();
+    /*! get tim step*/
+    double getDt();
 
     /*!get grid dimension X*/
     int getNxn();

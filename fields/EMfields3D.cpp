@@ -248,9 +248,9 @@ void EMfields3D::calculateE(Grid * grid, VirtualTopology3D * vct, Collective *co
   addscale(1 / th, -(1.0 - th) / th, Ez, Ezth, nxn, nyn, nzn);
 
   // apply to smooth to electric field 3 times
-  //smoothE(Smooth, vct, col);
-  //smoothE(Smooth, vct, col);
-  //smoothE(Smooth, vct, col);
+  smoothE(Smooth, vct, col);
+  smoothE(Smooth, vct, col);
+  smoothE(Smooth, vct, col);
 
   // communicate so the interpolation can have good values
   communicateNodeBC(nxn, nyn, nzn, Exth, col->bcEx[0],col->bcEx[1],col->bcEx[2],col->bcEx[3],col->bcEx[4],col->bcEx[5], vct);
@@ -4036,6 +4036,12 @@ int EMfields3D::getNzn() {
 int EMfields3D::getNzc() {
   return nzc;
 }
+
+double EMfields3D::getDt() {
+  return dt;
+}
+
+
 
 
 

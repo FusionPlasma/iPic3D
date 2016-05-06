@@ -31,11 +31,11 @@ int main(int argc, char **argv) {
     /* ----------------------------------------------------- */
 
     KCode.UpdateCycleInfo(i);
-    //KCode.CalculateField();
+    KCode.CalculateField();
 
     b_err = KCode.ParticlesMover();
 
-    //if (!b_err) KCode.CalculateBField();
+    if (!b_err) KCode.CalculateBField();
     if (!b_err) KCode.GatherMoments();
     if ( b_err) i = KCode.LastCycle() + 1;
 

@@ -248,9 +248,9 @@ void EMfields3D::calculateE(Grid * grid, VirtualTopology3D * vct, Collective *co
   addscale(1 / th, -(1.0 - th) / th, Ez, Ezth, nxn, nyn, nzn);
 
   // apply to smooth to electric field 3 times
-  smoothE(Smooth, vct, col);
-  smoothE(Smooth, vct, col);
-  smoothE(Smooth, vct, col);
+  //smoothE(Smooth, vct, col);
+  //smoothE(Smooth, vct, col);
+  //smoothE(Smooth, vct, col);
 
   // communicate so the interpolation can have good values
   communicateNodeBC(nxn, nyn, nzn, Exth, col->bcEx[0],col->bcEx[1],col->bcEx[2],col->bcEx[3],col->bcEx[4],col->bcEx[5], vct);
@@ -979,6 +979,17 @@ void EMfields3D::calculateB(Grid * grid, VirtualTopology3D * vct, Collective *co
   communicateNodeBC(nxn, nyn, nzn, Byn, col->bcBy[0],col->bcBy[1],col->bcBy[2],col->bcBy[3],col->bcBy[4],col->bcBy[5], vct);
   communicateNodeBC(nxn, nyn, nzn, Bzn, col->bcBz[0],col->bcBz[1],col->bcBz[2],col->bcBz[3],col->bcBz[4],col->bcBz[5], vct);
 
+  //todo! not for MPI!
+  if(Case == "shock"){
+    for(int i = 0; i < nxn; ++i){
+      for(int k = 0; k < nzn; ++k){
+        Bxn[i][nyn-1][k] = B0x;
+        Byn[i][nyn-1][k] = B0y;
+        Bzn[i][nyn-1][k] = B0z;
+      }
+    }
+  }
+
 
 }
 /*! initialize EM field with transverse electric waves 1D and rotate anticlockwise (theta degrees) */
@@ -1514,6 +1525,181 @@ void EMfields3D::init(VirtualTopology3D * vct, Grid * grid, Collective *col) {
     status = H5Dclose(dataset_id);
 
     // Ez 
+    dataset_id = H5Dopen2(file_id, "/fields/Ez/cycle_0", H5P_DEFAULT); // HDF 1.8.8
+    status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, temp_storage);
+    k = 0;
+    for (int i = 1; i < nxn - 1; i++)
+      for (int j = 1; j < nyn - 1; j++)
+        for (int jj = 1; jj < nzn - 1; jj++)
+          Ez[i][j][jj] = temp_storage[k++];
+
+    status = H5Dclose(dataset_id);
+
+    // open the charge density for species
+
+    stringstream *species_name = new stringstream[ns];
+    for (int is = 0; is < ns; is++) {
+      species_name[is] << is;
+      string name_dataset = "/moments/species_" + species_name[is].str() + "/rho/cycle_0";
+      dataset_id = H5Dopen2(file_id, name_dataset.c_str(), H5P_DEFAULT); // HDF 1.8.8
+      status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, temp_storage);
+      k = 0;
+      for (int i = 1; i < nxn - 1; i++)
+        for (int j = 1; j < nyn - 1; j++)
+          for (int jj = 1; jj < nzn - 1; jj++)
+            rhons[is][i][j][jj] = temp_storage[k++];
+
+      communicateNode_P(nxn, nyn, nzn, rhons, is, vct);
+      status = H5Dclose(dataset_id);
+
+    }
+
+    if (col->getCase()=="Dipole") {
+      ConstantChargePlanet(grid, vct, col->getL_square(),col->getx_center(),col->gety_center(),col->getz_center());
+    }
+
+    // ConstantChargeOpenBC(grid, vct);
+
+    // communicate ghost
+    communicateNodeBC(nxn, nyn, nzn, Bxn, col->bcBx[0],col->bcBx[1],col->bcBx[2],col->bcBx[3],col->bcBx[4],col->bcBx[5], vct);
+    communicateNodeBC(nxn, nyn, nzn, Byn, col->bcBy[0],col->bcBy[1],col->bcBy[2],col->bcBy[3],col->bcBy[4],col->bcBy[5], vct);
+    communicateNodeBC(nxn, nyn, nzn, Bzn, col->bcBz[0],col->bcBz[1],col->bcBz[2],col->bcBz[3],col->bcBz[4],col->bcBz[5], vct);
+    // initialize B on centers
+    grid->interpN2C(Bxc, Bxn);
+    grid->interpN2C(Byc, Byn);
+    grid->interpN2C(Bzc, Bzn);
+    // communicate ghost
+    communicateCenterBC(nxc, nyc, nzc, Bxc, col->bcBx[0],col->bcBx[1],col->bcBx[2],col->bcBx[3],col->bcBx[4],col->bcBx[5], vct);
+    communicateCenterBC(nxc, nyc, nzc, Byc, col->bcBy[0],col->bcBy[1],col->bcBy[2],col->bcBy[3],col->bcBy[4],col->bcBy[5], vct);
+    communicateCenterBC(nxc, nyc, nzc, Bzc, col->bcBz[0],col->bcBz[1],col->bcBz[2],col->bcBz[3],col->bcBz[4],col->bcBz[5], vct);
+    // communicate E
+    communicateNodeBC(nxn, nyn, nzn, Ex, col->bcEx[0],col->bcEx[1],col->bcEx[2],col->bcEx[3],col->bcEx[4],col->bcEx[5], vct);
+    communicateNodeBC(nxn, nyn, nzn, Ey, col->bcEy[0],col->bcEy[1],col->bcEy[2],col->bcEy[3],col->bcEy[4],col->bcEy[5], vct);
+    communicateNodeBC(nxn, nyn, nzn, Ez, col->bcEz[0],col->bcEz[1],col->bcEz[2],col->bcEz[3],col->bcEz[4],col->bcEz[5], vct);
+    for (int is = 0; is < ns; is++)
+      grid->interpN2C(rhocs, is, rhons);
+    // close the hdf file
+    status = H5Fclose(file_id);
+    delete[]temp_storage;
+    delete[]species_name;
+  }
+}
+
+void EMfields3D::initLangmuir(VCtopology3D *vct, Grid3DCU *grid, Collective *col) {
+  if (restart1 == 0) {
+    for (int i = 0; i < nxn; i++) {
+      for (int j = 0; j < nyn; j++) {
+        for (int k = 0; k < nzn; k++) {
+          for (int is = 0; is < ns; is++) {
+            rhons[is][i][j][k] = rhoINIT[is] / FourPI;
+          }
+          Ex[i][j][k] = 0.0;
+          Ey[i][j][k] = 1.0;
+          Ez[i][j][k] = 0.0;
+          Bxn[i][j][k] = B0x;
+          Byn[i][j][k] = B0y;
+          Bzn[i][j][k] = B0z;
+        }
+      }
+    }
+
+    // initialize B on centers
+    grid->interpN2C(Bxc, Bxn);
+    grid->interpN2C(Byc, Byn);
+    grid->interpN2C(Bzc, Bzn);
+
+    for (int is = 0; is < ns; is++)
+      grid->interpN2C(rhocs, is, rhons);
+  }
+  else {                        // READING FROM RESTART
+    if (vct->getCartesian_rank() == 0)
+      cout << "LOADING EM FIELD FROM RESTART FILE in " + RestartDirName + "/restart.hdf" << endl;
+    stringstream ss;
+    ss << vct->getCartesian_rank();
+    string name_file = RestartDirName + "/restart" + ss.str() + ".hdf";
+    // hdf stuff
+    hid_t file_id, dataspace;
+    hid_t datatype, dataset_id;
+    herr_t status;
+    size_t size;
+    hsize_t dims_out[3];        /* dataset dimensions */
+    int status_n;
+
+    // open the hdf file
+    file_id = H5Fopen(name_file.c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
+    if (file_id < 0) {
+      cout << "couldn't open file: " << name_file << endl;
+      cout << "RESTART NOT POSSIBLE" << endl;
+    }
+
+    dataset_id = H5Dopen2(file_id, "/fields/Bx/cycle_0", H5P_DEFAULT); // HDF 1.8.8
+    datatype = H5Dget_type(dataset_id);
+    size = H5Tget_size(datatype);
+    dataspace = H5Dget_space(dataset_id);
+    status_n = H5Sget_simple_extent_dims(dataspace, dims_out, NULL);
+
+
+
+    // Bxn
+    double *temp_storage = new double[dims_out[0] * dims_out[1] * dims_out[2]];
+    status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, temp_storage);
+    int k = 0;
+    for (int i = 1; i < nxn - 1; i++)
+      for (int j = 1; j < nyn - 1; j++)
+        for (int jj = 1; jj < nzn - 1; jj++)
+          Bxn[i][j][jj] = temp_storage[k++];
+
+
+    status = H5Dclose(dataset_id);
+
+    // Byn
+    dataset_id = H5Dopen2(file_id, "/fields/By/cycle_0", H5P_DEFAULT); // HDF 1.8.8
+    status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, temp_storage);
+    k = 0;
+    for (int i = 1; i < nxn - 1; i++)
+      for (int j = 1; j < nyn - 1; j++)
+        for (int jj = 1; jj < nzn - 1; jj++)
+          Byn[i][j][jj] = temp_storage[k++];
+
+    status = H5Dclose(dataset_id);
+
+
+    // Bzn
+    dataset_id = H5Dopen2(file_id, "/fields/Bz/cycle_0", H5P_DEFAULT); // HDF 1.8.8
+    status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, temp_storage);
+    k = 0;
+    for (int i = 1; i < nxn - 1; i++)
+      for (int j = 1; j < nyn - 1; j++)
+        for (int jj = 1; jj < nzn - 1; jj++)
+          Bzn[i][j][jj] = temp_storage[k++];
+
+    status = H5Dclose(dataset_id);
+
+
+    // Ex
+    dataset_id = H5Dopen2(file_id, "/fields/Ex/cycle_0", H5P_DEFAULT); // HDF 1.8.8
+    status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, temp_storage);
+    k = 0;
+    for (int i = 1; i < nxn - 1; i++)
+      for (int j = 1; j < nyn - 1; j++)
+        for (int jj = 1; jj < nzn - 1; jj++)
+          Ex[i][j][jj] = temp_storage[k++];
+
+    status = H5Dclose(dataset_id);
+
+
+    // Ey
+    dataset_id = H5Dopen2(file_id, "/fields/Ey/cycle_0", H5P_DEFAULT); // HDF 1.8.8
+    status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, temp_storage);
+    k = 0;
+    for (int i = 1; i < nxn - 1; i++)
+      for (int j = 1; j < nyn - 1; j++)
+        for (int jj = 1; jj < nzn - 1; jj++)
+          Ey[i][j][jj] = temp_storage[k++];
+
+    status = H5Dclose(dataset_id);
+
+    // Ez
     dataset_id = H5Dopen2(file_id, "/fields/Ez/cycle_0", H5P_DEFAULT); // HDF 1.8.8
     status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, temp_storage);
     k = 0;
@@ -4040,6 +4226,43 @@ int EMfields3D::getNzc() {
 double EMfields3D::getDt() {
   return dt;
 }
+
+double EMfields3D::getMaxE() {
+  double maxE = 0;
+  for(int i = 1; i < nxn-1; i++){
+    for(int j = 1; j < nyn-1; j++){
+      for(int k = 1; k < nzn-1; k++){
+        double tempE = sqrt(Ex[i][j][k]*Ex[i][j][k] + Ey[i][j][k]*Ey[i][j][k] + Ez[i][j][k]*Ez[i][j][k]);
+        if(tempE > maxE){
+          maxE = tempE;
+        }
+      }
+    }
+  }
+  return maxE;
+}
+
+double EMfields3D::getMaxB() {
+  double maxB = 0;
+  for(int i = 1; i < nxc-1; i++){
+    for(int j = 1; j < nyc-1; j++){
+      for(int k = 1; k < nzc-1; k++){
+        double tempB = sqrt(Bxc[i][j][k]*Bxc[i][j][k] + Byc[i][j][k]*Byc[i][j][k] + Bzc[i][j][k]*Bzc[i][j][k]);
+        if(tempB > maxB){
+          maxB = tempB;
+        }
+      }
+    }
+  }
+  return maxB;
+}
+
+
+
+
+
+
+
 
 
 

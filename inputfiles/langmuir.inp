@@ -7,15 +7,15 @@ RestartDirName = ../data     # Restart directory (for WriteMethod=default)
 
 #  %%%%%%%%%%%%%%%%%%% Input/Output flags %%%%%%%%%%%%%%%%%%
 
-Case              = shock                            # Case [ GEM | Dipole | ... ]
+Case              = langmuir                            # Case [ GEM | Dipole | ... ]
 FieldsInit        = ./data/Initial-Fields_000000.h5 # Initial fields h5 file
 PartInit          = Maxwell                         # Initial particles [ Maxwell | File ]
 WriteMethod       = default                         # Output method [ default | Parallel ]
 PoissonCorrection = no                             # Poisson correction [ yes | no ]
-SimulationName    = GEM                             # Simulation name for the output
+SimulationName    = langmuir                             # Simulation name for the output
 
 #  %%%%%%%%%%%%%%%%%%% Magnetic Reconnection %%%%%%%%%%%%%%%%%%
-B0x = 0.0001
+B0x = 0.00
 B0y = 0.00
 B0z = 0.00
 
@@ -27,7 +27,7 @@ B1z = 0.000
 delta = 0.5
 
 #  %%%%%%%%%%%%%%%%%%% TIME %%%%%%%%%%%%%%%%%%
-dt = 0.01               # dt = time step  
+dt = 0.001               # dt = time step  
 ncycles = 20000          # cycles
 th = 1.0               # th =   decentering parameter
 c = 1.0                # c = light speed 
@@ -76,12 +76,12 @@ uth             = 0.0000045   0.00000063     # Thermal velocity in X
 vth             = 0.0000045   0.00000063     # Thermal velocity in Y
 wth             = 0.0000045   0.00000063     # Thermal velocity in Z
 u0              = 0.0     0.0        # Drift velocity in X
-v0              = 0.0     0.0        # Drift velocity in Y
+v0              = -0.05     -0.05        # Drift velocity in Y
 w0              = 0 0   # Drift velocity in Z
 
 # %%%%%%%%%%%% Periodicity in each direction %%%%%%%%%%%%%%%
 PERIODICX       = 1                  # In direction X (1=true, 0=false)
-PERIODICY       = 0                  # In direction Y (1=true, 0=false)
+PERIODICY       = 1                  # In direction Y (1=true, 0=false)
 PERIODICZ       = 1                  # In direction Z (1=true, 0=false)
 
 # %%%%%%%%%%%% boundary conditions %%%%%%%%%%%%%%%
@@ -103,7 +103,7 @@ PERIODICZ       = 1                  # In direction Z (1=true, 0=false)
 #    1 = magnetic mirror
     bcEMfaceXright = 0
     bcEMfaceXleft =  0
-    bcEMfaceYright = 2
+    bcEMfaceYright = 0
     bcEMfaceYleft =  0
     bcEMfaceZright = 0
     bcEMfaceZleft =  0
@@ -114,7 +114,7 @@ PERIODICZ       = 1                  # In direction Z (1=true, 0=false)
 #    2 = riemission
     bcPfaceXright = 1
     bcPfaceXleft =  1
-    bcPfaceYright = 2
+    bcPfaceYright = 1
     bcPfaceYleft =  1
     bcPfaceZright = 1
     bcPfaceZleft =  1

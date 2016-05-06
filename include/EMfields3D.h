@@ -463,6 +463,12 @@ class EMfields3D                // :public Field
     void updateInfoFields(Grid *grid,VirtualTopology3D *vct,Collective *col);
 
     /* ********************************* // VARIABLES ********************************* */
+    double getMaxE();
+
+    double getMaxB();
+
+    void initLangmuir(VCtopology3D *vct, Grid3DCU *grid, Collective *col);
+
 private:
     /*! light speed */
     double c;

@@ -73,6 +73,7 @@ int c_Solver::Init(int argc, char **argv) {
     else if (col->getCase()=="BATSRUS")   EMf->initBATSRUS(vct,grid,col);
     else if (col->getCase()=="Dipole")    EMf->init(vct,grid,col);
     else if (col->getCase()=="shock") EMf->initShock(vct,grid,col);
+    else if (col->getCase()=="langmuir") EMf->initLangmuir(vct, grid, col);
     else if (col->getCase()=="alfven") EMf->initAlfvenWave(vct,grid,col, 1, 0.01, kw, Vye, Vze, Vyp, Vzp);
     else {
       if (myrank==0) {
@@ -473,12 +474,12 @@ void c_Solver::WriteSimpleOutput(int cycle) {
         FILE* distributionElectronFile = fopen((col->getSaveDirName() + "/distribution_electrons.dat").c_str(), "w");
         fclose(distributionProtonFile);
         fclose(distributionElectronFile);
-        FILE* generalFile = fopen((col->getSaveDirName() + "/general.dat").c_str(), "w");
-        fclose(generalFile);
         FILE* divergenceFile = fopen((col->getSaveDirName() + "/divergence_error.dat").c_str(), "w");
         fclose(divergenceFile);
+        FILE* generalFile = fopen((col->getSaveDirName() + "/general.dat").c_str(),"w");
+        fclose(generalFile);
     }
-    if(cycle % 100 == 0) {
+    if(cycle % 10 == 0) {
         FILE *Xfile = fopen((col->getSaveDirName() + "/Xfile.dat").c_str(), "w");
         FILE *Yfile = fopen((col->getSaveDirName() + "/Yfile.dat").c_str(), "w");
         FILE *Zfile = fopen((col->getSaveDirName() + "/Zfile.dat").c_str(), "w");
@@ -555,6 +556,32 @@ void c_Solver::WriteSimpleOutput(int cycle) {
 
         fclose(electronsFile);
         fclose(protonsFile);
+
+        FILE* generalFile = fopen((col->getSaveDirName() + "/general.dat").c_str(),"a");
+        Eenergy = EMf->getEenergy();
+        Benergy = EMf->getBenergy();
+        TOTenergy = 0.0;
+        TOTmomentum = 0.0;
+        double kinEnergy = 0;
+        int numberOfParticles = 0;
+        double maxE = EMf->getMaxE();
+        double maxB = EMf->getMaxB();
+        for (int is = 0; is < numberSpecies; is++) {
+            Ke[is] = part[is].getKe();
+            TOTenergy += Ke[is];
+            kinEnergy += Ke[is];
+            momentum[is] = part[is].getP();
+            TOTmomentum += momentum[is];
+            numberOfParticles += part[is].getNOP();
+        }
+        double simulation_time = cycle*EMf->getDt();
+        //todo momentum - vector and theoretical
+        fprintf(generalFile, "%d %15.10g %15.10g %15.10g %15.10g %15.10g %15.10g %15.10g %15.10g %15.10g %15.10g %15.10g %15.10g %15.10g %15.10g %15.10g %15.10g %d\n",
+                cycle, simulation_time, simulation_time, kinEnergy, Eenergy,
+                Benergy, TOTenergy, TOTmomentum, TOTmomentum, TOTmomentum,
+                TOTenergy, TOTmomentum, TOTmomentum, TOTmomentum, maxE, maxB, EMf->getDt(), numberOfParticles);
+        //printf("%15.10g\n", EMf->getDt());
+        fclose(generalFile);
     }
 }
 

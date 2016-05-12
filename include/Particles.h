@@ -87,7 +87,7 @@ public:
   /** return energy distribution*/
   virtual unsigned long *getVelocityDistribution(int nBins, double maxVel) = 0;
   /** retturn the momentum */
-  virtual double getP() = 0;
+  virtual double getTotalP() = 0;
   /** Print particles info: positions, velocities */
   virtual void Print(VirtualTopology3D * ptVCT) const = 0;
   /** Print the number of particles of this subdomain */

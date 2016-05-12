@@ -356,7 +356,7 @@ void c_Solver::WriteConserved(int cycle) {
     for (int is = 0; is < numberSpecies; is++) {
       Ke[is] = part[is].getKe();
       TOTenergy += Ke[is];
-      momentum[is] = part[is].getP();
+      momentum[is] = part[is].getTotalP();
       TOTmomentum += momentum[is];
     }
     if (myrank == 0) {
@@ -479,7 +479,7 @@ void c_Solver::WriteSimpleOutput(int cycle) {
         FILE* generalFile = fopen((col->getSaveDirName() + "/general.dat").c_str(),"w");
         fclose(generalFile);
     }
-    if(cycle % 10 == 0) {
+    if(cycle % 50 == 0) {
         FILE *Xfile = fopen((col->getSaveDirName() + "/Xfile.dat").c_str(), "w");
         FILE *Yfile = fopen((col->getSaveDirName() + "/Yfile.dat").c_str(), "w");
         FILE *Zfile = fopen((col->getSaveDirName() + "/Zfile.dat").c_str(), "w");
@@ -562,6 +562,9 @@ void c_Solver::WriteSimpleOutput(int cycle) {
         Benergy = EMf->getBenergy();
         TOTenergy = 0.0;
         TOTmomentum = 0.0;
+        double momentumX = 0;
+        double momentumY = 0;
+        double momentumZ = 0;
         double kinEnergy = 0;
         int numberOfParticles = 0;
         double maxE = EMf->getMaxE();
@@ -570,18 +573,28 @@ void c_Solver::WriteSimpleOutput(int cycle) {
             Ke[is] = part[is].getKe();
             TOTenergy += Ke[is];
             kinEnergy += Ke[is];
-            momentum[is] = part[is].getP();
+            momentum[is] = part[is].getTotalP();
+            momentumX += part[is].getTotalPx();
+            momentumY += part[is].getTotalPy();
+            momentumZ += part[is].getTotalPz();
             TOTmomentum += momentum[is];
             numberOfParticles += part[is].getNOP();
         }
+        double energy = TOTenergy + Eenergy + Benergy;
         double simulation_time = cycle*EMf->getDt();
         //todo momentum - vector and theoretical
         fprintf(generalFile, "%d %15.10g %15.10g %15.10g %15.10g %15.10g %15.10g %15.10g %15.10g %15.10g %15.10g %15.10g %15.10g %15.10g %15.10g %15.10g %15.10g %d\n",
                 cycle, simulation_time, simulation_time, kinEnergy, Eenergy,
-                Benergy, TOTenergy, TOTmomentum, TOTmomentum, TOTmomentum,
-                TOTenergy, TOTmomentum, TOTmomentum, TOTmomentum, maxE, maxB, EMf->getDt(), numberOfParticles);
+                Benergy, energy, momentumX, momentumY, momentumZ,
+                energy, momentumX, momentumY, momentumZ, maxE, maxB, EMf->getDt(), numberOfParticles);
         //printf("%15.10g\n", EMf->getDt());
         fclose(generalFile);
+        FILE* distributionProtonFile = fopen((col->getSaveDirName() + "/distribution_protons.dat").c_str(), "a");
+        FILE* distributionElectronFile = fopen((col->getSaveDirName() + "/distribution_electrons.dat").c_str(), "a");
+        WriteParticleDistribution(part[0], distributionElectronFile);
+        WriteParticleDistribution(part[1], distributionProtonFile);
+        fclose(distributionProtonFile);
+        fclose(distributionElectronFile);
     }
 }
 
@@ -601,5 +614,60 @@ void c_Solver::Finalize() {
   // close MPI
   mpi->finalize_mpi();
 }
+
+void c_Solver::WriteParticleDistribution(Particles3D& part, FILE *outputFile) {
+    const int pnumber = 200;
+    double minMomentum = 0; //todo something else
+    double maxMomentum = 0;
+    for (int i = 0; i < part.getNOP(); ++i) {
+        double p = part.getP(i);
+        if(minMomentum <= 0){
+            minMomentum = p;
+        }
+        if (p  < minMomentum) {
+            minMomentum = p;
+        } else {
+            if (p > maxMomentum) {
+                maxMomentum = p;
+            }
+        }
+    }
+
+    double pgrid[pnumber + 1];
+    double distribution[pnumber];
+    double logMinMomentum = log(minMomentum);
+    pgrid[0] = minMomentum;
+    distribution[0] = 0;
+    double deltaLogP = (log(maxMomentum) - log(minMomentum)) / (pnumber);
+    for (int i = 1; i < pnumber; ++i) {
+        distribution[i] = 0;
+        pgrid[i] = exp(logMinMomentum + i * deltaLogP);
+    }
+    pgrid[pnumber] = maxMomentum;
+
+    double weight = 0;
+
+    for (int i = 0; i < part.getNOP(); ++i) {
+        double p = part.getP(i);
+        int j = (log(p) - logMinMomentum) / deltaLogP;
+        if (j >= 0 && j < pnumber) {
+            //distribution[j] += particles[i]->weight;
+            //weight += particles[i]->weight;
+            distribution[j] += 1;
+            weight += 1;
+        }
+    }
+
+    for (int i = 0; i < pnumber; ++i) {
+        distribution[i] /= (weight * (pgrid[i + 1] - pgrid[i]));
+    }
+
+    for (int i = 0; i < pnumber; ++i) {
+        fprintf(outputFile, "%20.15g %20.15g\n", (pgrid[i] + pgrid[i + 1]) / 2, distribution[i]);
+    }
+
+}
+
+
 
 

@@ -15,7 +15,7 @@ PoissonCorrection = no                             # Poisson correction [ yes | 
 SimulationName    = GEM                             # Simulation name for the output
 
 #  %%%%%%%%%%%%%%%%%%% Magnetic Reconnection %%%%%%%%%%%%%%%%%%
-B0x = 0.0001
+B0x = 0.002
 B0y = 0.00
 B0z = 0.00
 
@@ -37,9 +37,9 @@ Smooth = 0.5           # Smoothing value (5-points stencil)
 
 
 # %%%%%%%%%%%%%%%%%% BOX SIZE %%%%%%%%%%%%%%%
-Lx =   1            # Lx = simulation box length - x direction   
-Ly =   128            # Ly = simulation box length - y direction
-Lz =   1.0             # Lz = simulation box length - z direction   
+Lx =   0.03125            # Lx = simulation box length - x direction   
+Ly =   8            # Ly = simulation box length - y direction
+Lz =   0.03125             # Lz = simulation box length - z direction   
 
 x_center =   1.        # Lx = simulation box length - x direction in m  
 y_center =   1.        # Ly = simulation box length - y direction in m
@@ -47,7 +47,7 @@ z_center =   1.        # Lz = simulation box length - z direction in m
 L_square =   .1
 
 nxc =  1              # nxc = number of cells - x direction        
-nyc =  128              # nyc = number of cells - y direction
+nyc =  256              # nyc = number of cells - y direction
 nzc =  1               # nzc = number of cells - z direction        
 
 # %%%%%%%%%%%%%%%%%% MPI TOPOLOGY %%%%%%%%%%%%%%%
@@ -71,12 +71,12 @@ npcely          = 200    200             # Particles per cell in Y
 npcelz          = 1    1             # Particles per cell in Z
 NpMaxNpRatio    = 3.0                # Maximum number of particles allocated
 
-qom             = -256.0  1.0        # Charge/mass ratio
+qom             = -64.0  1.0        # Charge/mass ratio
 uth             = 0.0000045   0.00000063     # Thermal velocity in X
 vth             = 0.0000045   0.00000063     # Thermal velocity in Y
 wth             = 0.0000045   0.00000063     # Thermal velocity in Z
 u0              = 0.0     0.0        # Drift velocity in X
-v0              = 0.0     0.0        # Drift velocity in Y
+v0              = -0.05     -0.05        # Drift velocity in Y
 w0              = 0 0   # Drift velocity in Z
 
 # %%%%%%%%%%%% Periodicity in each direction %%%%%%%%%%%%%%%

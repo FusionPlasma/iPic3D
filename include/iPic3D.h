@@ -50,6 +50,7 @@ namespace iPic3D {
     inline int get_myrank();
 
       void WriteSimpleOutput(int i);
+      void WriteParticleDistribution(Particles3D& part, FILE *outputFile);
 
   private:
     MPIdata       * mpi;

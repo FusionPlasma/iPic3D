@@ -1048,6 +1048,22 @@ double Particles3Dcomm::getV(long long indexPart)  const {
 double Particles3Dcomm::getW(long long indexPart)  const {
   return (w[indexPart]);
 }
+/** get momentum of particle*/
+double Particles3Dcomm::getP(long long indexPart)  const {
+  return (sqrt(u[indexPart] * u[indexPart] + v[indexPart] * v[indexPart] + w[indexPart] * w[indexPart])*q[indexPart] / chargeToMassRatio);
+}
+/** get momentum x of particle*/
+double Particles3Dcomm::getPx(long long indexPart)  const {
+  return (u[indexPart]*q[indexPart] / chargeToMassRatio);
+}
+/** get momentum y of particle*/
+double Particles3Dcomm::getPy(long long indexPart)  const {
+  return (v[indexPart]*q[indexPart] / chargeToMassRatio);
+}
+/** get momentum z of particle*/
+double Particles3Dcomm::getPz(long long indexPart)  const {
+  return (w[indexPart]*q[indexPart] / chargeToMassRatio);
+}
 /**get ID of particle with label indexPart */
 unsigned long Particles3Dcomm::getParticleID(long long indexPart)  const {
   return (ParticleID[indexPart]);
@@ -1070,11 +1086,38 @@ double Particles3Dcomm::getKe() {
   return (totalKe);
 }
 /** return the total momentum */
-double Particles3Dcomm::getP() {
+double Particles3Dcomm::getTotalP() {
   double localP = 0.0;
   double totalP = 0.0;
   for (register long long i = 0; i < nop; i++)
     localP += (q[i] / chargeToMassRatio) * sqrt(u[i] * u[i] + v[i] * v[i] + w[i] * w[i]);
+  MPI_Allreduce(&localP, &totalP, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  return (totalP);
+}
+
+double Particles3Dcomm::getTotalPx() {
+  double localP = 0.0;
+  double totalP = 0.0;
+  for (register long long i = 0; i < nop; i++)
+    localP += (q[i] / chargeToMassRatio) * u[i];
+  MPI_Allreduce(&localP, &totalP, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  return (totalP);
+}
+
+double Particles3Dcomm::getTotalPy() {
+  double localP = 0.0;
+  double totalP = 0.0;
+  for (register long long i = 0; i < nop; i++)
+    localP += (q[i] / chargeToMassRatio) * v[i];
+  MPI_Allreduce(&localP, &totalP, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  return (totalP);
+}
+
+double Particles3Dcomm::getTotalPz() {
+  double localP = 0.0;
+  double totalP = 0.0;
+  for (register long long i = 0; i < nop; i++)
+    localP += (q[i] / chargeToMassRatio) * w[i];
   MPI_Allreduce(&localP, &totalP, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
   return (totalP);
 }

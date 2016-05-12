@@ -148,6 +148,14 @@ public:
   double getV(long long indexPart) const;
   /** get w (Z-velocity) of particle with label indexPart */
   double getW(long long indexPart) const;
+    /** get momentum x of particle*/
+    double getPx(long long int indexPart) const;
+    /** get momentum y of particle*/
+    double getPy(long long int indexPart) const;
+    /** get momentum z of particle*/
+    double getPz(long long int indexPart) const;
+    /** get momentum of particle*/
+    double getP(long long int indexPart) const;
   /** get ID of particle with label indexPart */
   unsigned long getParticleID(long long indexPart) const;
   /**get charge of particle with label indexPart */
@@ -163,8 +171,11 @@ public:
   /** return energy distribution */
   unsigned long *getVelocityDistribution(int nBins, double maxVel);
   /** return the momentum */
-  double getP();
+  double getTotalP();
   /** Print particles info: positions, velocities */
+  double getTotalPx();
+    double getTotalPy();
+    double getTotalPz();
   void Print(VirtualTopology3D * ptVCT) const;
   /** Print the number of particles of this subdomain */
   void PrintNp(VirtualTopology3D * ptVCT) const;
@@ -333,7 +344,6 @@ protected:
 
   int nvDistLoc;
   c_vDist* vDist;
-
 };
 
 #endif

@@ -30,78 +30,97 @@ using namespace PSK;
 
 namespace iPic3D {
 
-  class c_Solver {
+    class c_Solver {
 
-  public:
-    int Init(int argc, char **argv);
-    void InjectBoundaryParticles();
-    void GatherMoments();
-    void CalculateField();
-    void CalculateBField();
-    bool ParticlesMover();
-    void WriteOutput(int cycle);
-    void WriteConserved(int cycle);
-    void WriteRestart(int cycle);
-    void UpdateCycleInfo(int cycle);
-    void Finalize();
+    public:
+        int Init(int argc, char **argv);
 
-    inline int FirstCycle();
-    inline int LastCycle();
-    inline int get_myrank();
+        void InjectBoundaryParticles();
 
-      void WriteSimpleOutput(int i);
-      void WriteParticleDistribution(Particles3D& part, FILE *outputFile);
+        void GatherMoments();
 
-  private:
-    MPIdata       * mpi;
-    Collective    *col;
-    VCtopology3D  *vct;
-    Grid3DCU      *grid;
-    EMfields3D    *EMf;
-    Particles3D   *part;
-    double        *Ke;
-    double        *momentum;
-    double        *Qremoved;
-    unsigned long *VelocityDist;
-    Timing        *my_clock;
+        void CalculateField();
 
-    PSK::OutputManager < PSK::OutputAdaptor > output_mgr; // Create an Output Manager
-    myOutputAgent < PSK::HDF5OutputAdaptor > hdf5_agent;  // Create an Output Agent for HDF5 output
+        void CalculateBField();
 
-    bool verbose;
-    string SaveDirName;
-    string RestartDirName;
-    string cqsat;
-    string cq;
-    string ds;
-    stringstream num_proc;
-    int restart_cycle;
-    int restart;
-    int first_cycle;
-    int numberSpecies;
-    int nprocs;
-    int myrank;
-    int mem_avail;
-    int nsat;
-    int nx0;
-    int ny0;
-    int nz0;
-    int nDistributionBins;
-    double Eenergy;
-    double Benergy;
-    double TOTenergy;
-    double TOTmomentum;
-  };
+        bool ParticlesMover();
 
-  inline int c_Solver::FirstCycle() {
-    return (first_cycle);
-  }
-  inline int c_Solver::LastCycle() {
-    return (col->getNcycles() + first_cycle-1);
-  }
-  inline int c_Solver::get_myrank() {
-    return (myrank);
-  }
+        void WriteOutput(int cycle);
+
+        void WriteConserved(int cycle);
+
+        void WriteRestart(int cycle);
+
+        void UpdateCycleInfo(int cycle);
+
+        void Finalize();
+
+        inline int FirstCycle();
+
+        inline int LastCycle();
+
+        inline int get_myrank();
+
+        void WriteSimpleOutput(int i);
+
+        void WriteParticleDistribution(Particles3D &part, FILE *outputFile);
+
+    private:
+        MPIdata *mpi;
+        Collective *col;
+        VCtopology3D *vct;
+        Grid3DCU *grid;
+        EMfields3D *EMf;
+        Particles3D *part;
+        double *Ke;
+        double *momentum;
+        double *Qremoved;
+        unsigned long *VelocityDist;
+        Timing *my_clock;
+
+        PSK::OutputManager<PSK::OutputAdaptor> output_mgr; // Create an Output Manager
+        myOutputAgent<PSK::HDF5OutputAdaptor> hdf5_agent;  // Create an Output Agent for HDF5 output
+
+        bool verbose;
+        string SaveDirName;
+        string RestartDirName;
+        string cqsat;
+        string cq;
+        string ds;
+        stringstream num_proc;
+        int restart_cycle;
+        int restart;
+        int first_cycle;
+        int numberSpecies;
+        int nprocs;
+        int myrank;
+        int mem_avail;
+        int nsat;
+        int nx0;
+        int ny0;
+        int nz0;
+        int nDistributionBins;
+        double Eenergy;
+        double Benergy;
+        double TOTenergy;
+        double TOTmomentum;
+        double theoreticalEnergy;
+        double theoreticalMomentumX;
+        double theoreticalMomentumY;
+        double theoreticalMomentumZ;
+    };
+
+    inline int c_Solver::FirstCycle() {
+        return (first_cycle);
+    }
+
+    inline int c_Solver::LastCycle() {
+        return (col->getNcycles() + first_cycle - 1);
+    }
+
+    inline int c_Solver::get_myrank() {
+        return (myrank);
+    }
 
 }
 
